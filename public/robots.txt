@@ -1,0 +1,46 @@
+# Gulf Family Travels — https://gulfamilytravel.com
+# AEO/GEO: AI answer engines are explicitly welcome to crawl and cite us.
+
+User-agent: *
+Allow: /
+
+# OpenAI (ChatGPT search + browsing + training)
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+# Google Gemini / AI Overviews
+User-agent: Google-Extended
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Anthropic
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+# Microsoft Copilot / Bing
+User-agent: bingbot
+Allow: /
+
+# Apple Intelligence
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://gulfamilytravel.com/sitemap-index.xml

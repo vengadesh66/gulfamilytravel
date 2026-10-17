@@ -1,0 +1,599 @@
+---
+import Base from '@/layouts/Base.astro';
+import SavingsTable, { type SavingsRow } from '@/components/SavingsTable.astro';
+import TripKit, { type TripKitStep } from '@/components/TripKit.astro';
+import TransportMap, { type TransportLeg } from '@/components/TransportMap.astro';
+import FAQBlock, { type FAQ } from '@/components/FAQBlock.astro';
+import AffiliateButton from '@/components/AffiliateButton.astro';
+
+import { USP, formatAED } from '@/data/site';
+import {
+  skyscannerLink,
+  bookingLink,
+  klookLink,
+  getYourGuideLink,
+  safetyWingLink,
+  wiseLink,
+} from '@/data/affiliates';
+import { article, howTo, touristTrip, breadcrumbs } from '@/lib/schema';
+
+/* ------------------------------------------------------------------ meta */
+const PATH = '/bali-family-trip-from-dubai';
+const H1 = 'Is Bali Worth It for a Family Trip from Dubai in 2026?';
+const TITLE = 'Bali Family Trip from Dubai 2026: DIY Cost & Itinerary';
+const DESCRIPTION =
+  'Bali from Dubai for a family of four: 5-day itinerary, transport cheat sheet, visa checklists for Indian and EU/US residents, and how booking yourself costs AED 4,970 per person vs AED 7,100+ with an agent.';
+const DATE_PUBLISHED = '2026-10-10';
+const DATE_MODIFIED = '2026-10-17';
+
+const QUICK_ANSWER =
+  'Yes. Bali is one of the best-value family trips from Dubai in 2026. Booking flights, a Seminyak family hotel, private drivers and Waterbom yourself costs about AED 4,970 per person for five nights, versus AED 7,100 or more through a travel agent. Indians, Europeans and Americans all get a visa on arrival.';
+
+/* --------------------------------------------------------------- savings */
+// Per person, family of 4 (2 adults + 2 kids) sharing, 5 nights, booked 6–8 weeks out.
+const savingsRows: SavingsRow[] = [
+  { item: 'Return flights DXB ⇄ DPS', diy: 2150, agent: 2600, how: 'Skyscanner, 1-stop, 6–8 weeks out' },
+  { item: 'Hotel, 5 nights Seminyak', diy: 800, agent: 1450, how: 'Booking.com family suite, AED 640/night ÷ 4' },
+  { item: 'Airport + daily transfers', diy: 260, agent: 520, how: 'Klook private car, split 4 ways' },
+  { item: 'Experiences & tours', diy: 780, agent: 1250, how: 'Waterbom, Ubud day trip, Uluwatu Kecak' },
+  { item: 'Visa on arrival + Bali levy', diy: 150, agent: 300, how: 'Official e-VoA + Love Bali levy' },
+  { item: 'Travel insurance', diy: 120, agent: 250, how: 'SafetyWing, 1 week' },
+  { item: 'eSIM + card fees', diy: 90, agent: 0, how: 'Klook eSIM + Wise card' },
+  { item: 'Meals & extras', diy: 620, agent: 730, how: 'Warungs + 2 nicer dinners' },
+];
+
+/* -------------------------------------------------------------- trip kit */
+const tripKit: TripKitStep[] = [
+  {
+    stage: 'flights',
+    title: 'Lock flights first: Dubai → Denpasar (DPS)',
+    why: 'Flights are the biggest cost and set your dates. Compare Emirates direct (~9h) with 1-stop routes via Kuala Lumpur or Singapore, which are often AED 400–800 cheaper per person.',
+    partner: 'skyscanner',
+    href: skyscannerLink({ from: 'DXB', to: 'DPS', adults: 2, childAges: [6, 9] }),
+    cta: 'Compare DXB → DPS fares',
+    budget: 'AED 2,150 pp',
+    tip: 'Use the "Whole month" view and set price alerts. Tuesday and Wednesday departures are usually cheapest.',
+  },
+  {
+    stage: 'hotel',
+    title: 'Book a free-cancellation family room in Seminyak',
+    why: 'Seminyak puts you 20 minutes from Waterbom and the airport, with walkable beaches and restaurants. Filter for "free cancellation" so you can re-book if prices drop.',
+    partner: 'booking',
+    href: bookingLink({ destination: 'Seminyak, Bali', adults: 2, childAges: [6, 9] }),
+    cta: 'See Seminyak family hotels',
+    budget: 'AED 800 pp',
+    tip: 'A villa with a private pool often costs the same as two hotel rooms. Ask for a baby cot or rollaway bed in the booking notes.',
+  },
+  {
+    stage: 'transport',
+    title: 'Pre-book the airport pickup and a day driver',
+    why: 'Book the arrival transfer and the Ubud day driver together. You land tired with kids, and a fixed price beats haggling with taxi touts at arrivals.',
+    partner: 'klook',
+    href: klookLink('Bali airport transfer'),
+    cta: 'Book Bali airport transfer',
+    budget: 'AED 260 pp',
+    tip: 'Child seats are rare in Bali. Request one at booking, or pack a travel booster seat.',
+  },
+  {
+    stage: 'experiences',
+    title: 'Grab Waterbom tickets and the Ubud tour',
+    why: 'Waterbom and the Uluwatu Kecak dance can sell out on weekends. Buying online in advance is usually cheaper than paying at the gate.',
+    partner: 'getyourguide',
+    href: getYourGuideLink('Bali family day trip Ubud'),
+    cta: 'Browse Bali family tours',
+    budget: 'AED 780 pp',
+    tip: 'Klook often has the best Waterbom price, and GetYourGuide has more guided Ubud options. Check both.',
+  },
+  {
+    stage: 'insurance',
+    title: 'Insure the trip once bookings are non-refundable',
+    why: 'Buy insurance once you have paid for flights. Check that it covers children, medical evacuation and trip interruption, because many UAE health plans only cover emergencies abroad.',
+    partner: 'safetywing',
+    href: safetyWingLink(),
+    cta: 'Get a SafetyWing quote',
+    budget: 'AED 120 pp',
+  },
+  {
+    stage: 'money',
+    title: 'Sort money: a Wise card beats exchange counters',
+    why: 'Load AED and spend in IDR at the mid-market rate. Withdraw rupiah from bank ATMs (BCA, Mandiri) and skip Dubai airport exchange counters and dynamic currency conversion.',
+    partner: 'wise',
+    href: wiseLink(),
+    cta: 'Open a free Wise account',
+    budget: 'AED 90 pp incl. eSIM',
+    tip: 'Always choose "charge in IDR" on card machines. Choosing AED triggers a bad conversion rate.',
+  },
+];
+
+/* ------------------------------------------------------------- itinerary */
+const itinerary = [
+  {
+    day: 1,
+    title: 'Land, check in, sunset at Double Six Beach',
+    plan: [
+      'Most Gulf flights land in the afternoon. Your pre-booked driver waits in arrivals with a name board.',
+      '30–60 min transfer to Seminyak. Check in, nap, pool time.',
+      'Sunset beanbags at Double Six Beach, then an early dinner on Jalan Kayu Aya.',
+    ],
+    kidTip: 'Buy water, snacks and sunscreen at a Pepito or Bintang supermarket on the way in. They cost half the hotel minibar price.',
+  },
+  {
+    day: 2,
+    title: 'Waterbom Bali, the reason most kids say yes',
+    plan: [
+      'Grab or a pre-booked car to Waterbom in Kuta (15–25 min). Arrive at opening time to beat the queues.',
+      'Rent a gazebo for shade and a base. Under-threes get in free.',
+      'Afternoon rest at the hotel, then dinner in Seminyak.',
+    ],
+    kidTip: 'Waterbom has height limits on the big slides. Check them on the ticket page so younger kids aren\'t disappointed.',
+  },
+  {
+    day: 3,
+    title: 'Ubud day trip: monkeys, rice terraces, waterfall',
+    plan: [
+      '8:00 departure with a private driver for about 10 hours, about 75 min each way.',
+      'Sacred Monkey Forest (go early), Tegallalang rice terraces, lunch with a view.',
+      'Tegenungan Waterfall or a coffee plantation on the way back. Optional Bali swing.',
+    ],
+    kidTip: 'Remove sunglasses, hats and dangling toys before the Monkey Forest. The monkeys steal them.',
+  },
+  {
+    day: 4,
+    title: 'Uluwatu cliffs and Kecak fire dance',
+    plan: [
+      'Lazy morning. Kids\' club or pool.',
+      'Afternoon drive south (60–75 min). Padang Padang or Melasti beach first.',
+      'Uluwatu Temple at golden hour, then the Kecak fire dance at sunset (about 1 hour).',
+    ],
+    kidTip: 'Families with kids 8+ who are comfortable on boats can swap this day for a Nusa Penida trip. It means an early start and a bumpy fast boat.',
+  },
+  {
+    day: 5,
+    title: 'Tanah Lot or shopping, then fly home',
+    plan: [
+      'Morning at Tanah Lot sea temple (45 min) or souvenir shopping in Seminyak.',
+      'Late check-out, or keep one room until departure. Most Gulf-bound flights leave in the evening.',
+      'Leave for DPS 3.5 hours before your flight. Traffic near the airport is unpredictable.',
+    ],
+    kidTip: 'Spend leftover rupiah before the airport, because exchange rates there are poor.',
+  },
+];
+
+/* ------------------------------------------------------------- transport */
+const transport: TransportLeg[] = [
+  {
+    from: 'Ngurah Rai Airport (DPS)',
+    to: 'Seminyak hotel',
+    kind: 'arrival',
+    mode: 'Pre-booked private car (fits 4 + luggage)',
+    duration: '30–60 min',
+    cost: 'IDR 300k ≈ AED 70 / car',
+    tip: 'Skip the arrivals-hall taxi touts. Grab and Gojek work from the official ride-hailing pickup zone if you travel light.',
+    klookHref: klookLink('Bali airport transfer Seminyak'),
+    klookLabel: 'Book airport → Seminyak',
+  },
+  {
+    from: 'Seminyak',
+    to: 'Waterbom Bali, Kuta',
+    kind: 'local',
+    mode: 'Grab / Gojek car',
+    duration: '15–25 min',
+    cost: 'IDR 60–90k ≈ AED 15–20',
+    tip: 'Pickups are easy from Seminyak hotels. Expect surge pricing at closing time, so book the return 15 minutes early.',
+    klookHref: klookLink('Waterbom Bali'),
+    klookLabel: 'Waterbom tickets on Klook',
+  },
+  {
+    from: 'Seminyak',
+    to: 'Ubud (Monkey Forest, Tegallalang)',
+    kind: 'daytrip',
+    mode: 'Private driver, 10 hours',
+    duration: '~75 min each way',
+    cost: 'IDR 700–900k ≈ AED 160–200 / car',
+    tip: 'Fuel, parking and the driver\'s lunch are usually included. Entry fees and tips are not.',
+    klookHref: klookLink('Bali private car charter'),
+    klookLabel: 'Book a Bali private driver',
+  },
+  {
+    from: 'Seminyak',
+    to: 'Uluwatu Temple + Kecak dance',
+    kind: 'daytrip',
+    mode: 'Private driver, half day (6 h)',
+    duration: '60–75 min each way',
+    cost: 'IDR 500–600k ≈ AED 115–140 / car',
+    tip: 'Ride-hailing pickups from Uluwatu after dark are unreliable. Keep your driver waiting.',
+    klookHref: klookLink('Uluwatu Kecak dance'),
+    klookLabel: 'Uluwatu + Kecak tickets',
+  },
+  {
+    from: 'Seminyak hotel',
+    to: 'Ngurah Rai Airport (DPS)',
+    kind: 'departure',
+    mode: 'Pre-booked private car',
+    duration: '30–60 min (allow 90)',
+    cost: 'IDR 250–300k ≈ AED 60–70 / car',
+    tip: 'Leave 3.5 hours before an international departure. The bypass into the airport jams in the late afternoon.',
+    klookHref: klookLink('Bali airport transfer'),
+    klookLabel: 'Book hotel → airport',
+  },
+];
+
+/* ------------------------------------------------------------ checklists */
+const indianChecklist = [
+  'Indian passport valid at least 6 months from arrival, with 2 blank pages, for every family member.',
+  'UAE or Qatar residence visa valid for your return. Re-entry is refused if it expires while you are away.',
+  'Indonesia e-VoA (Visa on Arrival) bought online at evisa.imigrasi.go.id, IDR 500,000 per person including children. Use only the official site.',
+  'Bali tourism levy, IDR 150,000 per person, paid via the official Love Bali website or app.',
+  'All Indonesia digital arrival card completed online within 3 days before landing.',
+  'Printed or saved return ticket and hotel confirmation. Immigration can ask for both.',
+  'If you connect in Kuala Lumpur or Singapore, stay airside on one ticket. Check transit rules if you self-transfer.',
+  'Travel insurance covering children and medical evacuation (SafetyWing or similar).',
+  'Wise card plus a backup bank card. Tell your UAE bank you are travelling.',
+];
+
+const euUsChecklist = [
+  'EU, UK or US passport valid at least 6 months from arrival, for every family member.',
+  'Indonesia e-VoA bought online before departure, IDR 500,000 per person. It is the same visa and fee as for Indian passports.',
+  'Bali tourism levy, IDR 150,000 per person, via the official Love Bali website or app.',
+  'All Indonesia digital arrival card completed online within 3 days before landing.',
+  'Check whether your UAE or Qatar employer health plan covers Indonesia. Many do not cover routine care abroad.',
+  'Residence visa valid for your return, plus your Emirates ID or Qatar ID for the e-gates when you get home.',
+  'Don\'t rent scooters with kids. Most insurers won\'t pay out without a valid motorcycle licence and an International Driving Permit.',
+  'Wise card or a no-FX-fee card. Choose to pay in IDR, never in your home currency.',
+];
+
+/* ------------------------------------------------------------------- FAQ */
+const faqs: FAQ[] = [
+  {
+    q: 'Is Bali worth it for a family trip from Dubai in 2026?',
+    a: 'Yes, for most families. Bali offers calm beaches, Waterbom, rice terraces and temples at prices well below the Maldives or Europe. Booking flights, a Seminyak hotel and drivers yourself costs about AED 4,970 per person for five nights, versus AED 7,100 or more through a typical Dubai travel agent.',
+  },
+  {
+    q: 'Do Indian passport holders living in the UAE need a visa for Bali?',
+    a: 'Yes. Indian citizens qualify for Indonesia’s Visa on Arrival, best bought online as an e-VoA before flying. It costs IDR 500,000, roughly AED 115, per person including children, and allows 30 days, extendable once. Carry a passport valid six months and a return ticket. Your UAE residence visa does not change these rules.',
+  },
+  {
+    q: 'How long is the flight from Dubai to Bali?',
+    a: 'Emirates flies Dubai to Denpasar nonstop in roughly nine hours. One-stop routes via Kuala Lumpur, Singapore or Doha take eleven to fifteen hours but are often AED 400 to 800 cheaper per person. With young children, the nonstop flight usually justifies the extra cost because it avoids a tiring night connection.',
+  },
+  {
+    q: 'What is the cheapest way to get from Bali airport to Seminyak?',
+    a: 'A pre-booked private car is the best-value reliable option, about IDR 300,000 or roughly AED 70 per car, taking 30 to 60 minutes depending on traffic. Grab and Gojek can be slightly cheaper but require walking to the official pickup zone. Avoid unmetered taxi touts in arrivals, who often charge double.',
+  },
+  {
+    q: 'Is Seminyak or Ubud better for families with kids?',
+    a: 'Seminyak suits most families better. It has beaches, child-friendly restaurants and a 20-minute ride to Waterbom. Ubud is greener and cooler but has no beach and busier roads. The easiest plan is to stay in Seminyak and visit Ubud on a full-day private driver tour, so you never pack up and change hotels.',
+  },
+  {
+    q: 'What is the best month to visit Bali from the UAE?',
+    a: 'April to June and September are the sweet spot, with dry-season sunshine but without the July and August peak prices. Late June also catches the start of UAE school holidays before rates jump. December to March is wet season with short, heavy showers, but hotel prices can drop by a third.',
+  },
+  {
+    q: 'Do we need travel insurance for a Bali family holiday?',
+    a: 'Indonesia does not require it, but you should buy it. A private hospital visit in Bali can cost AED 1,000 or more, and medical evacuation far more. Many UAE health plans only cover emergencies abroad. SafetyWing costs roughly AED 120 per adult weekly and includes one child under ten per adult.',
+  },
+  {
+    q: 'What is the Bali tourist levy and how do we pay it?',
+    a: 'Every foreign visitor to Bali, including children, pays a one-time tourism levy of IDR 150,000, about AED 35. Pay it online through the official Love Bali website or app before departure, then show the QR code if asked on arrival. It is separate from, and in addition to, the visa on arrival fee.',
+  },
+];
+
+/* --------------------------------------------------------------- schema */
+const howToSteps = [
+  { name: 'Check passports', text: 'Make sure every passport, including children’s, is valid for at least 6 months from your arrival date in Bali.' },
+  { name: 'Book flights', text: 'Compare Dubai to Denpasar fares on Skyscanner and book 6–8 weeks ahead.' },
+  { name: 'Book a family hotel', text: 'Reserve a free-cancellation family room or villa in Seminyak on Booking.com.' },
+  { name: 'Book transfers', text: 'Pre-book the airport pickup and an Ubud day driver on Klook.' },
+  { name: 'Apply for the e-VoA', text: 'Buy the Indonesia e-VoA online at evisa.imigrasi.go.id for every traveller, IDR 500,000 each.' },
+  { name: 'Pay the Bali levy', text: 'Pay the IDR 150,000 per-person tourism levy on the official Love Bali website or app.' },
+  { name: 'Buy travel insurance', text: 'Buy a policy covering children and medical evacuation, such as SafetyWing.' },
+  { name: 'Set up money', text: 'Open a Wise card and plan to withdraw rupiah from bank ATMs on arrival.' },
+  { name: 'Complete the arrival card', text: 'Fill in the All Indonesia digital arrival card within 3 days before landing.' },
+  { name: 'Confirm residence validity', text: 'Check your UAE or Qatar residence visa is valid for your return date.' },
+];
+
+const schema = [
+  article({
+    path: PATH,
+    headline: H1,
+    description: DESCRIPTION,
+    datePublished: DATE_PUBLISHED,
+    dateModified: DATE_MODIFIED,
+    about: ['Bali', 'Family travel', 'Indonesia visa on arrival', 'Dubai'],
+  }),
+  howTo({
+    path: PATH,
+    name: 'How to plan a DIY Bali family trip from Dubai (pre-departure checklist)',
+    description: 'The 10-step checklist UAE and Qatar residents follow to book Bali themselves and save AED 2,000+ per person.',
+    totalTime: 'PT3H',
+    estimatedCostAED: USP.diyTotal,
+    supply: ['Passports (6+ months validity)', 'UAE/Qatar residence visa', 'Credit or Wise card', 'Smartphone with Love Bali app'],
+    steps: howToSteps,
+  }),
+  touristTrip({
+    path: PATH,
+    name: '5-day Bali family itinerary from Dubai',
+    description: 'Seminyak base with Waterbom, an Ubud day trip, Uluwatu Kecak dance and Tanah Lot, built for families with children.',
+    touristType: ['Families with children', 'Gulf residents', 'Indian passport holders', 'EU/US expats'],
+    offerPriceAED: USP.diyTotal,
+    itinerary: [
+      { name: 'Ngurah Rai International Airport', description: 'Arrival airport (DPS), 30–60 min from Seminyak.', type: 'Airport' },
+      { name: 'Seminyak & Double Six Beach', description: 'Family base with sunset beach and restaurants.', type: 'TouristDestination' },
+      { name: 'Waterbom Bali', description: 'Water park in Kuta, 15–25 min from Seminyak.' },
+      { name: 'Sacred Monkey Forest Sanctuary, Ubud', description: 'Forest temple complex with long-tailed macaques.' },
+      { name: 'Tegallalang Rice Terraces', description: 'Classic terraced rice fields north of Ubud.' },
+      { name: 'Uluwatu Temple', description: 'Clifftop sea temple with a sunset Kecak fire dance.' },
+      { name: 'Tanah Lot', description: 'Sea temple on a rock outcrop, 45 min from Seminyak.' },
+    ],
+  }),
+  breadcrumbs([
+    { name: 'Family holidays from Dubai', path: '/' },
+    { name: 'Bali family trip from Dubai', path: PATH },
+  ]),
+];
+
+const saving = USP.agentTotal - USP.diyTotal;
+---
+
+<Base
+  title={TITLE}
+  description={DESCRIPTION}
+  niche="a"
+  schema={schema}
+  datePublished={DATE_PUBLISHED}
+  dateModified={DATE_MODIFIED}
+>
+  <article>
+    <!-- ============ HERO ============ -->
+    <header class="hero">
+      <div class="container">
+        <nav class="crumbs small" aria-label="Breadcrumb">
+          <a href="/">Family holidays from Dubai</a> <span aria-hidden="true">/</span>
+          <span aria-current="page">Bali</span>
+        </nav>
+
+        <p class="eyebrow">Destination guide · Indonesia · 5 days</p>
+        <h1>{H1}</h1>
+
+        <div class="answer-box">
+          <span class="label">Quick answer</span>
+          <p>{QUICK_ANSWER}</p>
+        </div>
+
+        <p class="meta small muted">
+          Updated <time datetime={DATE_MODIFIED}>17 October 2026</time> · First published
+          <time datetime={DATE_PUBLISHED}>10 October 2026</time> · Prices per person, family of 4 sharing
+        </p>
+
+        <SavingsTable
+          rows={savingsRows}
+          caption="Bali, 5 nights: DIY vs Dubai travel agent"
+          basis="Per person · 2 adults + 2 kids sharing · 5 nights · booked 6–8 weeks out"
+          expectDiyTotal={USP.diyTotal}
+          expectAgentTotal={USP.agentTotal}
+        />
+
+        <div class="hero-cta">
+          <AffiliateButton
+            href={skyscannerLink({ from: 'DXB', to: 'DPS', adults: 2, childAges: [6, 9] })}
+            partner="skyscanner"
+            label="Step 1: Check DXB → Bali fares"
+            size="l"
+            note="Opens Skyscanner with your route pre-filled"
+          />
+          <a class="jump" href="#trip-kit">See the full booking order ↓</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <!-- ============ VERDICT ============ -->
+      <section class="section" aria-labelledby="verdict-h">
+        <h2 id="verdict-h">The verdict: who Bali is (and isn't) for</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3 class="text-success">Go if…</h3>
+            <ul>
+              <li>Your kids are 4+ and love water parks, beaches and animals</li>
+              <li>You want a long-haul feel for a mid-haul budget</li>
+              <li>You hold an Indian, EU, UK or US passport (visa on arrival for all)</li>
+              <li>You can travel April–June or September for dry, off-peak weather</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3 class="text-danger">Think twice if…</h3>
+            <ul>
+              <li>You have a baby and need guaranteed car seats and pram-friendly pavements</li>
+              <li>You only have 3 nights, since 9+ hours of flying each way eats into the trip</li>
+              <li>You want empty beaches. Seminyak and Kuta are busy in July and August.</li>
+              <li>Traffic stresses you out. Plan one big outing per day.</li>
+            </ul>
+          </div>
+        </div>
+        <p>
+          Booking each piece yourself saves about <strong class="price">{formatAED(saving)}</strong> per person, or roughly
+          <strong class="price">{formatAED(saving * 4)}</strong> for a family of four. Most of the saving comes from the
+          hotel, transfers and tours, where agent mark-ups are highest.
+        </p>
+      </section>
+
+      <!-- ============ ITINERARY ============ -->
+      <section class="section" id="itinerary" aria-labelledby="itinerary-h">
+        <h2 id="itinerary-h">5-day Bali family itinerary (Seminyak base)</h2>
+        <p class="lede">
+          One hotel and one big outing per day, with an afternoon rest built in. That's the pace that works with kids
+          and Bali traffic.
+        </p>
+        <ol class="days">
+          {
+            itinerary.map((d) => (
+              <li class="day card" id={`day-${d.day}`}>
+                <p class="day-num eyebrow">Day {d.day}</p>
+                <h3>{d.title}</h3>
+                <ul>
+                  {d.plan.map((p) => (
+                    <li>{p}</li>
+                  ))}
+                </ul>
+                <p class="kid-tip small">
+                  <strong>Kid tip:</strong> {d.kidTip}
+                </p>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+
+      <!-- ============ TRANSPORT ============ -->
+      <TransportMap
+        legs={transport}
+        heading="Bali transport cheat sheet: airport, hotel, attractions and back"
+        intro="Every leg of the trip with typical prices (IDR → AED at about 4,400 : 1). Prices are per car, not per person."
+      />
+
+      <!-- ============ TRIP KIT ============ -->
+      <TripKit
+        steps={tripKit}
+        heading="Book Bali yourself in this exact order"
+        intro="Flights → hotel → transport → experiences → insurance → money. Each step depends on the one before, and this order protects you if prices or dates change."
+      />
+
+      <!-- ============ CHECKLISTS ============ -->
+      <section class="section" id="checklists" aria-labelledby="checklists-h">
+        <h2 id="checklists-h">Pre-departure checklists for Gulf residents</h2>
+        <p>
+          Entry rules are the same for Indian, EU, UK and US passports: a paid visa on arrival. What differs is what you
+          need to check for your UAE or Qatar residence, insurance and transit.
+        </p>
+        <div class="grid two">
+          <div class="card checklist-card" data-niche="b">
+            <h3 id="indian-rp-checklist">🇮🇳 Indian passport + UAE/Qatar residence</h3>
+            <ul class="checklist">
+              {indianChecklist.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+          <div class="card checklist-card">
+            <h3 id="eu-us-rp-checklist">🇪🇺 🇬🇧 🇺🇸 EU / UK / US passport + Gulf residence</h3>
+            <ul class="checklist">
+              {euUsChecklist.map((item) => <li>{item}</li>)}
+            </ul>
+          </div>
+        </div>
+        <p class="disclosure">
+          Visa and levy amounts were correct as of our last update ({DATE_MODIFIED}). Indonesia changes entry rules
+          often, so confirm on the official immigration site before you fly.
+        </p>
+      </section>
+
+      <!-- ============ FAQ ============ -->
+      <FAQBlock faqs={faqs} heading="Bali family trip FAQs" />
+
+      <!-- ============ FINAL CTA ============ -->
+      <section class="section final-cta card">
+        <h2>Ready? Start with flights. Everything else follows.</h2>
+        <p>
+          Lock the fare and the rest takes about an evening to book. Save <strong class="price">{formatAED(saving)}+</strong> per
+          person and keep the flexibility an agent package never gives you.
+        </p>
+        <div class="cta-row">
+          <AffiliateButton
+            href={skyscannerLink({ from: 'DXB', to: 'DPS', adults: 2, childAges: [6, 9] })}
+            partner="skyscanner"
+            label="1 · Flights"
+          />
+          <AffiliateButton
+            href={bookingLink({ destination: 'Seminyak, Bali', adults: 2, childAges: [6, 9] })}
+            partner="booking"
+            label="2 · Hotel"
+            variant="secondary"
+          />
+          <AffiliateButton href={klookLink('Bali airport transfer')} partner="klook" label="3 · Transfers" variant="secondary" />
+          <AffiliateButton href={safetyWingLink()} partner="safetywing" label="4 · Insurance" variant="secondary" />
+          <AffiliateButton href={wiseLink()} partner="wise" label="5 · Money" variant="secondary" />
+        </div>
+        <p class="disclosure">
+          Affiliate links: we may earn a commission if you book, at no extra cost to you. We never handle your payment.
+        </p>
+      </section>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .hero {
+    padding-block: var(--space-xl) var(--space-l);
+    background:
+      radial-gradient(60rem 30rem at 85% -10%, var(--accent-soft), transparent 70%),
+      linear-gradient(var(--bg), var(--bg));
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 {
+    margin-block: var(--space-xs) var(--space-l);
+    max-width: 22ch;
+  }
+  .crumbs {
+    margin-bottom: var(--space-m);
+    color: var(--text-muted);
+  }
+  .crumbs a {
+    color: var(--text-muted);
+  }
+  .meta {
+    margin-top: var(--space-m);
+  }
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-m) var(--space-l);
+  }
+  .jump {
+    font-weight: 600;
+  }
+  .two {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    margin-block: var(--space-m);
+  }
+  .card h3 {
+    margin-top: 0;
+  }
+  .days {
+    list-style: none;
+    padding: 0;
+    max-width: none;
+    display: grid;
+    gap: var(--space-m);
+  }
+  .day + .day {
+    margin-top: 0;
+  }
+  .day h3 {
+    margin-top: var(--space-2xs);
+  }
+  .day ul {
+    margin-top: var(--space-xs);
+  }
+  .kid-tip {
+    margin-top: var(--space-s);
+    padding: var(--space-xs) var(--space-s);
+    background: var(--accent-soft);
+    border-radius: var(--radius-s);
+  }
+  .checklist-card .checklist {
+    margin-top: var(--space-m);
+  }
+  .final-cta {
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl);
+    border-color: var(--accent);
+  }
+  .final-cta h2 {
+    margin-top: 0;
+  }
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin-block: var(--space-l) var(--space-m);
+  }
+</style>

@@ -1,0 +1,182 @@
+---
+/**
+ * Transport cheat sheet: airport → hotel → attractions → airport,
+ * rendered as a route with one card per leg and a Klook link where it helps.
+ */
+import AffiliateButton from './AffiliateButton.astro';
+
+export interface TransportLeg {
+  from: string;
+  to: string;
+  kind: 'arrival' | 'local' | 'daytrip' | 'departure';
+  /** e.g. "Pre-booked private car" */
+  mode: string;
+  duration: string;
+  /** Human-readable cost, e.g. "IDR 300k ≈ AED 70 per car". */
+  cost: string;
+  tip?: string;
+  klookHref?: string;
+  klookLabel?: string;
+}
+
+interface Props {
+  legs: TransportLeg[];
+  heading?: string;
+  intro?: string;
+  id?: string;
+}
+
+const { legs, heading = 'Transport cheat sheet', intro, id = 'transport' } = Astro.props;
+
+const KIND_LABEL: Record<TransportLeg['kind'], string> = {
+  arrival: 'Arrival',
+  local: 'Local hop',
+  daytrip: 'Day trip',
+  departure: 'Departure',
+};
+---
+
+<section class="tmap" id={id} aria-labelledby={`${id}-h`}>
+  <h2 id={`${id}-h`}>{heading}</h2>
+  {intro && <p class="lede">{intro}</p>}
+
+  <ol class="legs">
+    {
+      legs.map((leg) => (
+        <li class:list={['leg', `leg--${leg.kind}`]}>
+          <div class="leg-route">
+            <span class="leg-kind badge">{KIND_LABEL[leg.kind]}</span>
+            <p class="leg-path">
+              <span class="stop">{leg.from}</span>
+              <span class="arrow" aria-label="to">
+                →
+              </span>
+              <span class="stop">{leg.to}</span>
+            </p>
+          </div>
+          <dl class="leg-facts">
+            <div>
+              <dt>How</dt>
+              <dd>{leg.mode}</dd>
+            </div>
+            <div>
+              <dt>Time</dt>
+              <dd class="mono">{leg.duration}</dd>
+            </div>
+            <div>
+              <dt>Cost</dt>
+              <dd class="price">{leg.cost}</dd>
+            </div>
+          </dl>
+          {leg.tip && <p class="leg-tip small">{leg.tip}</p>}
+          {leg.klookHref && (
+            <div class="leg-cta">
+              <AffiliateButton
+                href={leg.klookHref}
+                partner="klook"
+                variant="secondary"
+                label={leg.klookLabel ?? 'Book this transfer on Klook'}
+              />
+            </div>
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .legs {
+    list-style: none;
+    padding: 0;
+    max-width: none;
+    display: grid;
+    gap: var(--space-m);
+    position: relative;
+  }
+  .leg {
+    position: relative;
+    margin: 0;
+    padding: var(--space-m) var(--space-l);
+    padding-left: calc(var(--space-l) + 1.25rem);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+  }
+  .leg + .leg {
+    margin-top: 0;
+  }
+  /* route dot + line */
+  .leg::before {
+    content: '';
+    position: absolute;
+    left: var(--space-m);
+    top: 1.35rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .leg:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: calc(var(--space-m) + 0.4rem - 1px);
+    top: 2.4rem;
+    bottom: calc(-1 * var(--space-m) - 1.35rem);
+    width: 2px;
+    background-image: linear-gradient(var(--accent) 50%, transparent 50%);
+    background-size: 2px 8px;
+    z-index: 1;
+  }
+  .leg--arrival::before,
+  .leg--departure::before {
+    border-radius: 3px;
+  }
+  .leg--daytrip::before {
+    background: var(--surface);
+    border: 3px solid var(--accent);
+  }
+
+  .leg-route {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-xs) var(--space-s);
+  }
+  .leg-path {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--step-1);
+    line-height: 1.25;
+    margin: 0;
+  }
+  .arrow {
+    color: var(--accent-ink);
+    margin-inline: 0.3em;
+  }
+  .leg-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+    gap: var(--space-xs) var(--space-l);
+    margin-top: var(--space-s);
+  }
+  .leg-facts dt {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
+  }
+  .leg-facts dd {
+    margin: 0;
+    font-size: 0.92rem;
+  }
+  .leg-tip {
+    margin-top: var(--space-s);
+    color: var(--text-muted);
+  }
+  .leg-cta {
+    margin-top: var(--space-s);
+  }
+</style>

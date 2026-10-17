@@ -1,0 +1,180 @@
+---
+/**
+ * The booking sequence. Always renders in the money-saving order:
+ * flights → hotel → transport → experiences → insurance → money.
+ * (Flights first because dates lock everything else; insurance after
+ * you have non-refundable bookings to protect.)
+ */
+import AffiliateButton from './AffiliateButton.astro';
+import type { PartnerKey } from '@/data/affiliates';
+
+export type TripStage = 'flights' | 'hotel' | 'transport' | 'experiences' | 'insurance' | 'money';
+
+export interface TripKitStep {
+  stage: TripStage;
+  title: string;
+  /** Why this step sits here and what to pick. */
+  why: string;
+  partner: PartnerKey;
+  href: string;
+  cta?: string;
+  /** Budget line in AED, e.g. "AED 2,150 pp". */
+  budget?: string;
+  tip?: string;
+}
+
+interface Props {
+  steps: TripKitStep[];
+  heading?: string;
+  intro?: string;
+  id?: string;
+}
+
+const ORDER: TripStage[] = ['flights', 'hotel', 'transport', 'experiences', 'insurance', 'money'];
+const ICON: Record<TripStage, string> = {
+  flights: '✈',
+  hotel: '⌂',
+  transport: '⇄',
+  experiences: '★',
+  insurance: '✚',
+  money: '¤',
+};
+
+const { steps, heading = 'Your trip kit — book in this order', intro, id = 'trip-kit' } = Astro.props;
+const ordered = [...steps].sort((a, b) => ORDER.indexOf(a.stage) - ORDER.indexOf(b.stage));
+---
+
+<section class="tripkit" id={id} aria-labelledby={`${id}-h`}>
+  <h2 id={`${id}-h`}>{heading}</h2>
+  {intro && <p class="lede">{intro}</p>}
+
+  <ol class="tk-list">
+    {
+      ordered.map((s, i) => (
+        <li class="tk-step" id={`step-${i + 1}`}>
+          <div class="tk-marker" aria-hidden="true">
+            <span class="tk-num">{i + 1}</span>
+            <span class="tk-icon">{ICON[s.stage]}</span>
+          </div>
+          <div class="tk-body">
+            <p class="tk-stage eyebrow">{s.stage}</p>
+            <h3 class="tk-title">{s.title}</h3>
+            <p class="tk-why">{s.why}</p>
+            {s.tip && (
+              <p class="tk-tip">
+                <strong>Tip:</strong> {s.tip}
+              </p>
+            )}
+            <div class="tk-actions">
+              <AffiliateButton href={s.href} partner={s.partner} label={s.cta} />
+              {s.budget && <span class="badge">{s.budget}</span>}
+            </div>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .tk-list {
+    list-style: none;
+    padding: 0;
+    max-width: none;
+    counter-reset: none;
+  }
+  .tk-step {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: var(--space-m);
+    position: relative;
+    padding-bottom: var(--space-xl);
+  }
+  .tk-step + .tk-step {
+    margin-top: 0;
+  }
+  /* connecting line */
+  .tk-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: calc(1.5rem - 1px);
+    top: 3rem;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(var(--accent), var(--border));
+  }
+  .tk-marker {
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.2rem;
+    box-shadow: 0 0 0 5px var(--bg);
+  }
+  .tk-icon {
+    position: absolute;
+    right: -0.35rem;
+    bottom: -0.35rem;
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--accent-ink);
+    border: 1px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-size: 0.75rem;
+    font-family: var(--font-body);
+  }
+  .tk-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    padding: var(--space-m) var(--space-l) var(--space-l);
+    box-shadow: var(--shadow-s);
+  }
+  .tk-title {
+    margin-top: var(--space-2xs);
+  }
+  .tk-why {
+    color: var(--text-muted);
+  }
+  .tk-tip {
+    margin-top: var(--space-s);
+    font-size: 0.9rem;
+    padding: var(--space-xs) var(--space-s);
+    background: var(--surface-2);
+    border-radius: var(--radius-s);
+  }
+  .tk-actions {
+    margin-top: var(--space-m);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+  }
+  @media (max-width: 34rem) {
+    .tk-step {
+      grid-template-columns: 2.4rem 1fr;
+      gap: var(--space-s);
+    }
+    .tk-marker {
+      width: 2.4rem;
+      height: 2.4rem;
+      font-size: 1rem;
+    }
+    .tk-step:not(:last-child)::before {
+      left: calc(1.2rem - 1px);
+      top: 2.4rem;
+    }
+    .tk-body {
+      padding: var(--space-m);
+    }
+  }
+</style>

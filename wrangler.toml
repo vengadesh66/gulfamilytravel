@@ -1,0 +1,8 @@
+# Cloudflare Pages project config.
+# Used by `npx wrangler pages deploy` (direct upload) and read by the Pages
+# dashboard when the project is connected to GitHub.
+# Static assets only — no Functions/Workers — so it stays on the free tier.
+
+name = "gulf-family-travel"
+pages_build_output_dir = "./dist"
+compatibility_date = "2026-10-01"

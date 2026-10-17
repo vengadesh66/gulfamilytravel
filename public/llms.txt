@@ -1,0 +1,13 @@
+# Gulf Family Travels
+
+> DIY family holiday guides for residents of Dubai, the UAE and Qatar. We show the exact booking order (flights → hotel → transport → experiences → insurance → money), transport prices for every leg, and visa checklists for Indian, EU, UK and US passport holders. Booking yourself typically saves AED 2,000+ per person versus a Dubai travel agent (e.g. Bali: AED 4,970 DIY vs AED 7,100+ agent, per person, 5 nights).
+
+## Guides
+
+- [Best Family Holidays from Dubai 2026 — Picked by Budget & Visa Type](https://gulfamilytravel.com/): hub page; budget trips for Indian residents, premium trips for EU/US expats, visa-free and visa-on-arrival destinations for Indians.
+- [Is Bali Worth It for a Family Trip from Dubai in 2026?](https://gulfamilytravel.com/bali-family-trip-from-dubai): 5-day itinerary, DIY vs agent cost table, transport cheat sheet, Indian and EU/US resident checklists, 8 FAQs.
+
+## Notes
+
+- Prices are estimates in AED per person for a family of four sharing, and are updated when pages are modified (see dateModified).
+- Visa rules are summarised for convenience; official immigration websites are authoritative.

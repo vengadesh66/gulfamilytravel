@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Placeholder for crawlers that request /sitemap.xml directly.
+  The real sitemap is generated at build time by @astrojs/sitemap:
+    /sitemap-index.xml  →  /sitemap-0.xml
+  Submit /sitemap-index.xml in Google Search Console and Bing Webmaster Tools.
+-->
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://gulfamilytravel.com/sitemap-0.xml</loc>
+  </sitemap>
+</sitemapindex>

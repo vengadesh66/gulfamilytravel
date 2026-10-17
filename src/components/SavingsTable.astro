@@ -1,0 +1,214 @@
+---
+/**
+ * DIY vs travel-agent cost comparison. Totals are computed from rows and
+ * checked against the stated totals so the headline numbers never drift.
+ */
+import { formatAED } from '@/data/site';
+
+export interface SavingsRow {
+  item: string;
+  diy: number;
+  agent: number;
+  /** How the DIY price is achieved, e.g. "Skyscanner, 1-stop, 8 weeks out". */
+  how?: string;
+}
+
+interface Props {
+  rows: SavingsRow[];
+  caption?: string;
+  /** e.g. "Per person · family of 4 sharing · 5 nights" */
+  basis: string;
+  /** Show "+" after the agent total (agents often add extras). */
+  agentPlus?: boolean;
+  /** Optional expected totals; build fails if rows don't add up to them. */
+  expectDiyTotal?: number;
+  expectAgentTotal?: number;
+  compact?: boolean;
+}
+
+const {
+  rows,
+  caption = 'DIY booking vs travel agent package',
+  basis,
+  agentPlus = true,
+  expectDiyTotal,
+  expectAgentTotal,
+  compact = false,
+} = Astro.props;
+
+const diyTotal = rows.reduce((sum, r) => sum + r.diy, 0);
+const agentTotal = rows.reduce((sum, r) => sum + r.agent, 0);
+const saving = agentTotal - diyTotal;
+const pct = Math.round((saving / agentTotal) * 100);
+
+if (expectDiyTotal !== undefined && expectDiyTotal !== diyTotal) {
+  throw new Error(`[SavingsTable] DIY rows sum to ${diyTotal}, expected ${expectDiyTotal}.`);
+}
+if (expectAgentTotal !== undefined && expectAgentTotal !== agentTotal) {
+  throw new Error(`[SavingsTable] Agent rows sum to ${agentTotal}, expected ${expectAgentTotal}.`);
+}
+---
+
+<figure class:list={['savings', { 'savings--compact': compact }]}>
+  <div class="savings-summary" aria-hidden="true">
+    <div class="tot tot--diy">
+      <span class="tot-label">Book it yourself</span>
+      <span class="tot-value price">{formatAED(diyTotal)}</span>
+    </div>
+    <div class="tot tot--agent">
+      <span class="tot-label">Travel agent</span>
+      <span class="tot-value price"><s>{formatAED(agentTotal)}</s>{agentPlus && '+'}</span>
+    </div>
+    <div class="tot tot--save">
+      <span class="tot-label">You save</span>
+      <span class="tot-value price">{formatAED(saving)}</span>
+      <span class="tot-pct">{pct}% cheaper</span>
+    </div>
+  </div>
+
+  {
+    !compact && (
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">
+            {caption} — {basis}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">What you pay for</th>
+              <th scope="col" class="num">DIY</th>
+              <th scope="col" class="num">Agent</th>
+              <th scope="col" class="num">Saving</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr>
+                <th scope="row">
+                  {r.item}
+                  {r.how && <span class="how">{r.how}</span>}
+                </th>
+                <td class="num price diy">{formatAED(r.diy)}</td>
+                <td class="num price agent">{formatAED(r.agent)}</td>
+                <td class="num price save">{r.agent - r.diy > 0 ? `−${formatAED(r.agent - r.diy)}` : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th scope="row">Total</th>
+              <td class="num price diy">{formatAED(diyTotal)}</td>
+              <td class="num price agent">
+                {formatAED(agentTotal)}
+                {agentPlus && '+'}
+              </td>
+              <td class="num price save">−{formatAED(saving)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    )
+  }
+  <figcaption class="small muted">
+    <strong>{caption}.</strong>
+    {basis}. Estimates in AED based on typical prices; live prices change daily, so check the links below.
+  </figcaption>
+</figure>
+
+<style>
+  .savings {
+    display: grid;
+    gap: var(--space-m);
+    margin-block: var(--space-l);
+  }
+  .savings-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-s);
+  }
+  @media (max-width: 34rem) {
+    .savings-summary {
+      grid-template-columns: 1fr 1fr;
+    }
+    .tot--save {
+      grid-column: 1 / -1;
+    }
+  }
+  .tot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: var(--space-m);
+    border-radius: var(--radius-m);
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .tot-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+  .tot-value {
+    font-size: var(--step-2);
+    line-height: 1.1;
+  }
+  .tot--diy {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .tot--diy .tot-value {
+    color: var(--accent-ink);
+  }
+  .tot--agent .tot-value {
+    color: var(--text-muted);
+  }
+  .tot--agent s {
+    text-decoration-thickness: 2px;
+  }
+  .tot--save {
+    background: var(--success-soft);
+    border-color: transparent;
+  }
+  .tot--save .tot-value,
+  .tot-pct {
+    color: var(--success);
+  }
+  .tot-pct {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .num {
+    text-align: right;
+  }
+  th[scope='row'] {
+    font-weight: 600;
+  }
+  .how {
+    display: block;
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--text-subtle);
+  }
+  td.diy {
+    color: var(--accent-ink);
+  }
+  td.agent {
+    color: var(--text-muted);
+  }
+  td.save {
+    color: var(--success);
+  }
+  tfoot th,
+  tfoot td {
+    border-top: 2px solid var(--border-strong);
+    font-size: 0.95rem;
+    font-weight: 700;
+    background: var(--surface-2);
+  }
+  figcaption {
+    max-width: var(--measure);
+  }
+</style>

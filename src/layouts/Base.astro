@@ -1,0 +1,393 @@
+---
+/**
+ * Base layout — <head> meta, Open Graph, JSON-LD @graph, dark mode,
+ * header with USP banner, footer with affiliate disclosure.
+ */
+import '@fontsource/syne/600.css';
+import '@fontsource/syne/700.css';
+import '@fontsource/syne/800.css';
+import '@fontsource-variable/inter';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/600.css';
+import '@/styles/global.css';
+
+import { SITE, USP, NAV, formatAED } from '@/data/site';
+import { graph, toJsonLd, assertFreshDates } from '@/lib/schema';
+
+interface Props {
+  /** <title> — keep under ~60 chars when possible. */
+  title: string;
+  description: string;
+  /** 'a' = Gulf travel (gold), 'b' = India visa (teal). */
+  niche?: 'a' | 'b';
+  /** Schema.org nodes merged into one @graph (Organization + WebSite are added automatically). */
+  schema?: Record<string, unknown>[];
+  ogType?: 'website' | 'article';
+  ogImage?: string;
+  datePublished?: string;
+  dateModified?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  niche = 'a',
+  schema = [],
+  ogType = 'article',
+  ogImage = SITE.ogImage,
+  datePublished,
+  dateModified,
+  noindex = false,
+} = Astro.props;
+
+if (datePublished && dateModified) assertFreshDates(datePublished, dateModified, Astro.url.pathname);
+
+const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', SITE.url).toString();
+const ogImageUrl = new URL(ogImage, SITE.url).toString();
+const fullTitle = title === SITE.title ? title : `${title} | ${SITE.name}`;
+const jsonLd = toJsonLd(graph(schema));
+const saving = USP.agentTotal - USP.diyTotal;
+const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<!doctype html>
+<html lang={SITE.lang} dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content={noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="author" content={SITE.author} />
+
+    <!-- Theme colour follows light/dark -->
+    <meta name="theme-color" content="#fbf8f3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#12110f" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE.name} />
+    <meta property="og:locale" content={SITE.locale} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    {datePublished && <meta property="article:published_time" content={datePublished} />}
+    {dateModified && <meta property="article:modified_time" content={dateModified} />}
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content={SITE.twitter} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <!-- Structured data: Organization + WebSite + page nodes (Article, HowTo, TouristTrip…) -->
+    <script type="application/ld+json" set:html={jsonLd} />
+
+    <!-- Apply saved theme before first paint (no flash). -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+
+  <body data-niche={niche}>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <aside class="usp-banner" aria-label="Why book it yourself">
+      <div class="container usp-inner">
+        <span class="usp-text">
+          <strong>{USP.headline}</strong>
+        </span>
+        <span class="usp-figures">
+          DIY <span class="price">{formatAED(USP.diyTotal)}</span>
+          <span aria-hidden="true">·</span>
+          Agent <span class="price strike">{formatAED(USP.agentTotal)}+</span>
+          <span class="badge badge--success">You keep {formatAED(saving)}</span>
+        </span>
+      </div>
+    </aside>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/" aria-label={`${SITE.name} — home`}>
+          <img src="/favicon.svg" alt="" width="32" height="32" />
+          <span class="brand-text">
+            <span class="brand-name">{SITE.name}</span>
+            <span class="brand-tag">Plan it yourself from Dubai &amp; Qatar</span>
+          </span>
+        </a>
+
+        <nav aria-label="Main">
+          <ul class="nav-list">
+            {
+              NAV.map((item) => (
+                <li>
+                  <a href={item.href} aria-current={item.href === currentPath ? 'page' : undefined}>
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+
+        <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+          <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.5" fill="currentColor"></circle>
+            <g stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+            </g>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1Z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <p class="footer-brand">{SITE.name}</p>
+          <p class="muted small">{SITE.tagline}</p>
+        </div>
+        <div>
+          <p class="footer-heading">Guides</p>
+          <ul class="footer-links">
+            <li><a href="/bali-family-trip-from-dubai">Bali family trip from Dubai</a></li>
+            <li><a href="/#indian-rp-budget-trips">Budget trips for Indian residents</a></li>
+            <li><a href="/#eu-us-rp-premium-trips">Premium trips for EU/US residents</a></li>
+            <li><a href="/#visa-free-for-indians">Visa-free destinations for Indians</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer-heading">Affiliate disclosure</p>
+          <p class="disclosure">
+            Some links are affiliate links (Skyscanner, Booking.com, Klook, GetYourGuide, SafetyWing, Wise). If you
+            book through them we may earn a commission at no extra cost to you. We never take payments — every
+            booking happens on the partner's site. Prices are estimates; always confirm visa rules on official
+            government sites before you travel.
+          </p>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <small class="muted">© {new Date().getFullYear()} {SITE.name} · gulfamilytravel.com</small>
+      </div>
+    </footer>
+
+    <script>
+      const btn = document.querySelector<HTMLButtonElement>('.theme-toggle');
+      const root = document.documentElement;
+      const current = () =>
+        (root.getAttribute('data-theme') as 'light' | 'dark' | null) ??
+        (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const sync = () => btn?.setAttribute('aria-pressed', String(current() === 'dark'));
+      sync();
+      btn?.addEventListener('click', () => {
+        const next = current() === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try {
+          localStorage.setItem('theme', next);
+        } catch {}
+        sync();
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  /* USP banner — on every page */
+  .usp-banner {
+    background: var(--text);
+    color: var(--bg);
+    font-size: 0.85rem;
+  }
+  .usp-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
+    padding-block: 0.55rem;
+  }
+  .usp-figures {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .usp-figures .price {
+    font-size: 0.85rem;
+  }
+  .strike {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    opacity: 0.75;
+  }
+
+  /* Header */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-m);
+    min-height: 4rem;
+    flex-wrap: wrap;
+    padding-block: var(--space-xs);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--text);
+    margin-right: auto;
+  }
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .brand-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.01em;
+  }
+  .brand-tag {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .nav-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-m);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: none;
+  }
+  .nav-list li + li {
+    margin-top: 0;
+  }
+  .nav-list a {
+    font-size: 0.9rem;
+    font-weight: 550;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding-block: 0.25rem;
+  }
+  .nav-list a:hover,
+  .nav-list a[aria-current='page'] {
+    color: var(--text);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+
+  .theme-toggle {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    color: var(--text);
+  }
+  .theme-toggle:hover {
+    border-color: var(--accent);
+  }
+  .icon-moon {
+    display: none;
+  }
+  :global(:root[data-theme='dark']) .icon-sun {
+    display: none;
+  }
+  :global(:root[data-theme='dark']) .icon-moon {
+    display: block;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .icon-sun {
+      display: none;
+    }
+    :global(:root:not([data-theme='light'])) .icon-moon {
+      display: block;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .brand-tag {
+      display: none;
+    }
+    nav {
+      order: 3;
+      width: 100%;
+    }
+    .nav-list {
+      gap: var(--space-m);
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
+  }
+
+  /* Footer */
+  .site-footer {
+    margin-top: var(--space-3xl);
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+    padding-block: var(--space-2xl) var(--space-l);
+  }
+  .footer-inner {
+    display: grid;
+    gap: var(--space-xl);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  }
+  .footer-brand {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.2rem;
+  }
+  .footer-heading {
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin-bottom: var(--space-xs);
+  }
+  .footer-links {
+    list-style: none;
+    padding: 0;
+    font-size: 0.9rem;
+  }
+  .footer-bottom {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--border);
+  }
+</style>

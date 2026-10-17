@@ -1,0 +1,107 @@
+---
+/**
+ * Outbound affiliate link styled as a button.
+ * Always rel="sponsored nofollow noopener noreferrer" and target="_blank".
+ */
+import { PARTNERS, type PartnerKey } from '@/data/affiliates';
+
+interface Props {
+  href: string;
+  partner: PartnerKey;
+  /** Visible button text. Defaults to "Check prices on {Partner}". */
+  label?: string;
+  variant?: 'primary' | 'secondary';
+  size?: 'm' | 'l';
+  /** Optional micro-copy under the button, e.g. "Free cancellation on most rooms". */
+  note?: string;
+  block?: boolean;
+}
+
+const { href, partner, label, variant = 'primary', size = 'm', note, block = false } = Astro.props;
+const p = PARTNERS[partner];
+const text = label ?? `Check prices on ${p.name}`;
+---
+
+<span class:list={['aff', { 'aff--block': block }]}>
+  <a
+    class:list={['aff-btn', `aff-btn--${variant}`, `aff-btn--${size}`]}
+    href={href}
+    target="_blank"
+    rel="sponsored nofollow noopener noreferrer"
+    data-partner={p.key}
+    data-category={p.category}
+  >
+    <span>{text}</span>
+    <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+      <path
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M7 4h9v9M16 4 5 15"></path>
+    </svg>
+    <span class="visually-hidden">(opens {p.name} in a new tab, affiliate link)</span>
+  </a>
+  {note && <small class="aff-note">{note}</small>}
+</span>
+
+<style>
+  .aff {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    align-items: flex-start;
+  }
+  .aff--block,
+  .aff--block .aff-btn {
+    width: 100%;
+  }
+  .aff-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    font-weight: 650;
+    text-decoration: none;
+    line-height: 1.2;
+    border: 2px solid var(--accent);
+    transition:
+      transform 0.12s ease,
+      box-shadow 0.12s ease,
+      background-color 0.12s ease;
+  }
+  .aff-btn--m {
+    padding: 0.6rem 1.15rem;
+    font-size: 0.95rem;
+  }
+  .aff-btn--l {
+    padding: 0.85rem 1.6rem;
+    font-size: 1.05rem;
+  }
+  .aff-btn--primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .aff-btn--secondary {
+    background: transparent;
+    color: var(--accent-ink);
+  }
+  .aff-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-m);
+    text-decoration: none;
+  }
+  .aff-btn--secondary:hover {
+    background: var(--accent-soft);
+  }
+  .aff-btn:active {
+    transform: translateY(0);
+  }
+  .aff-note {
+    color: var(--text-subtle);
+    font-size: 0.78rem;
+    padding-left: 0.5rem;
+  }
+</style>

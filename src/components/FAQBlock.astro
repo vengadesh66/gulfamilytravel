@@ -1,0 +1,139 @@
+---
+/**
+ * FAQ accordion + inline FAQPage JSON-LD.
+ * AEO rule: every answer must be 40–58 words so AI engines can quote it
+ * whole. The build fails if an answer falls outside that range.
+ */
+import { toJsonLd } from '@/lib/schema';
+import { SITE } from '@/data/site';
+
+export interface FAQ {
+  q: string;
+  a: string;
+}
+
+interface Props {
+  faqs: FAQ[];
+  heading?: string;
+  id?: string;
+  /** Open the first item by default. */
+  openFirst?: boolean;
+  minWords?: number;
+  maxWords?: number;
+}
+
+const { faqs, heading = 'Frequently asked questions', id = 'faq', openFirst = true, minWords = 40, maxWords = 58 } =
+  Astro.props;
+
+const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
+
+for (const f of faqs) {
+  const n = wordCount(f.a);
+  if (n < minWords || n > maxWords) {
+    throw new Error(
+      `[AEO] FAQ answer must be ${minWords}–${maxWords} words, got ${n} on ${Astro.url.pathname}:\n  Q: ${f.q}`,
+    );
+  }
+}
+
+const pageUrl = new URL(Astro.url.pathname, SITE.url).toString();
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${pageUrl}#${id}`,
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 60);
+---
+
+<section class="faq" id={id} aria-labelledby={`${id}-h`}>
+  <h2 id={`${id}-h`}>{heading}</h2>
+  <div class="faq-list">
+    {
+      faqs.map((f, i) => (
+        <details class="faq-item" id={slug(f.q)} open={openFirst && i === 0}>
+          <summary>
+            <h3 class="faq-q">{f.q}</h3>
+            <span class="faq-icon" aria-hidden="true" />
+          </summary>
+          <div class="faq-a">
+            <p>{f.a}</p>
+          </div>
+        </details>
+      ))
+    }
+  </div>
+  <script type="application/ld+json" set:html={toJsonLd(schema)} />
+</section>
+
+<style>
+  .faq-list {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .faq-item + .faq-item {
+    border-top: 1px solid var(--border);
+  }
+  summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-m);
+    padding: var(--space-m) var(--space-l);
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:hover {
+    background: var(--surface-2);
+  }
+  .faq-q {
+    font-size: var(--step-0);
+    margin: 0;
+    line-height: 1.35;
+  }
+  .faq-icon {
+    flex: none;
+    position: relative;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: var(--accent-soft);
+  }
+  .faq-icon::before,
+  .faq-icon::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0.7rem;
+    height: 2px;
+    background: var(--accent-ink);
+    translate: -50% -50%;
+    transition: rotate 0.15s ease;
+  }
+  .faq-icon::after {
+    rotate: 90deg;
+  }
+  details[open] .faq-icon::after {
+    rotate: 0deg;
+  }
+  .faq-a {
+    padding: 0 var(--space-l) var(--space-l);
+    color: var(--text-muted);
+  }
+</style>

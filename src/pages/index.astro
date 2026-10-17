@@ -1,0 +1,542 @@
+---
+import Base from '@/layouts/Base.astro';
+import SavingsTable, { type SavingsRow } from '@/components/SavingsTable.astro';
+import TripKit, { type TripKitStep } from '@/components/TripKit.astro';
+import FAQBlock, { type FAQ } from '@/components/FAQBlock.astro';
+import AffiliateButton from '@/components/AffiliateButton.astro';
+
+import { SITE, USP, formatAED } from '@/data/site';
+import {
+  skyscannerExploreLink,
+  bookingLink,
+  klookLink,
+  getYourGuideLink,
+  safetyWingLink,
+  wiseLink,
+} from '@/data/affiliates';
+import { article, howTo, touristTrip } from '@/lib/schema';
+
+/* ------------------------------------------------------------------ meta */
+const PATH = '/';
+const H1 = 'Best Family Holidays from Dubai 2026 — Picked by Budget & Visa Type';
+const DESCRIPTION =
+  'The best family holidays from Dubai and Qatar in 2026, sorted by budget and passport: budget trips for Indian residents, premium picks for EU/US expats, and visa-free destinations for Indians. Book it yourself and save AED 2,000+ per person.';
+const DATE_PUBLISHED = '2026-10-10';
+const DATE_MODIFIED = '2026-10-17';
+
+const QUICK_ANSWER =
+  'For 2026, Bali is the best all-round family holiday from Dubai, at about AED 4,970 per person booked yourself. Indian residents get the best value from Thailand, Malaysia and Sri Lanka. EU and US expats should look at Mauritius and the Maldives. Booking yourself typically saves AED 2,000 or more per person.';
+
+/* ---------------------------------------------------------- destinations */
+interface Destination {
+  name: string;
+  country: string;
+  flight: string;
+  diyFrom: number; // AED per person, est. 5 nights incl. flights
+  bestFor: string;
+  visa: string;
+  href?: string; // set once the guide is live
+}
+
+const indianBudget: Destination[] = [
+  { name: 'Bali', country: 'Indonesia', flight: '9h direct', diyFrom: 4970, bestFor: 'Water parks, beaches, culture', visa: 'Visa on arrival', href: '/bali-family-trip-from-dubai' },
+  { name: 'Krabi & Phuket', country: 'Thailand', flight: '6.5h direct', diyFrom: 3900, bestFor: 'Island hopping, easy food', visa: 'Visa exemption' },
+  { name: 'Kuala Lumpur & Langkawi', country: 'Malaysia', flight: '7h direct', diyFrom: 3600, bestFor: 'Theme parks, malls, beaches', visa: 'Visa-free' },
+  { name: 'Colombo & south coast', country: 'Sri Lanka', flight: '4.5h direct', diyFrom: 3200, bestFor: 'Safaris, trains, beaches', visa: 'Online ETA' },
+  { name: 'Tbilisi & Kazbegi', country: 'Georgia', flight: '3h direct', diyFrom: 3400, bestFor: 'Mountains, snow in winter', visa: 'e-Visa' },
+];
+
+const euUsPremium: Destination[] = [
+  { name: 'Mauritius', country: 'Mauritius', flight: '6.5h direct', diyFrom: 8900, bestFor: 'Lagoon resorts, kids’ clubs', visa: 'Visa-free' },
+  { name: 'Maldives', country: 'Maldives', flight: '4h direct', diyFrom: 9800, bestFor: 'Overwater villas, snorkelling', visa: 'Free on arrival' },
+  { name: 'Seychelles', country: 'Seychelles', flight: '4.5h direct', diyFrom: 9200, bestFor: 'Quiet beaches, giant tortoises', visa: 'Visitor permit' },
+  { name: 'Tokyo & Kyoto', country: 'Japan', flight: '10h direct', diyFrom: 11500, bestFor: 'Disney, trains, culture', visa: 'Visa-free (EU/US)' },
+  { name: 'Bali private villas', country: 'Indonesia', flight: '9h direct', diyFrom: 7400, bestFor: 'Pool villas in Ubud & Canggu', visa: 'Visa on arrival', href: '/bali-family-trip-from-dubai' },
+];
+
+/* -------------------------------------------------- visa-free for Indians */
+interface VisaRow {
+  country: string;
+  entry: string;
+  stay: string;
+  cost: string;
+  flight: string;
+}
+
+const visaFreeForIndians: VisaRow[] = [
+  { country: 'Thailand', entry: 'Visa exemption', stay: 'Up to 60 days (under review)', cost: 'Free', flight: '6h' },
+  { country: 'Malaysia', entry: 'Visa-free', stay: '30 days', cost: 'Free (MDAC arrival card)', flight: '7h' },
+  { country: 'Mauritius', entry: 'Visa-free', stay: '90 days', cost: 'Free', flight: '6.5h' },
+  { country: 'Maldives', entry: 'Visa on arrival', stay: '30 days', cost: 'Free (IMUGA form)', flight: '4h' },
+  { country: 'Indonesia (Bali)', entry: 'Visa on arrival / e-VoA', stay: '30 days', cost: 'IDR 500k ≈ AED 115 + Bali levy', flight: '9h' },
+  { country: 'Seychelles', entry: 'Visitor permit on arrival', stay: 'Up to 30 days', cost: 'Travel authorisation fee', flight: '4.5h' },
+  { country: 'Nepal', entry: 'No visa needed', stay: 'No limit', cost: 'Free', flight: '4h' },
+  { country: 'Bhutan', entry: 'Entry permit on arrival', stay: '7 days (extendable)', cost: 'SDF INR 1,200/night', flight: '1-stop' },
+];
+
+/* --------------------------------------------------------------- savings */
+const savingsRows: SavingsRow[] = [
+  { item: 'Flights', diy: 2150, agent: 2600 },
+  { item: 'Hotel (5 nights)', diy: 800, agent: 1450 },
+  { item: 'Transfers', diy: 260, agent: 520 },
+  { item: 'Experiences', diy: 780, agent: 1250 },
+  { item: 'Visa & levies', diy: 150, agent: 300 },
+  { item: 'Insurance', diy: 120, agent: 250 },
+  { item: 'eSIM & card fees', diy: 90, agent: 0 },
+  { item: 'Meals & extras', diy: 620, agent: 730 },
+];
+
+/* -------------------------------------------------------------- trip kit */
+const tripKit: TripKitStep[] = [
+  {
+    stage: 'flights',
+    title: 'Flights: set your dates and destination',
+    why: 'Flights are 40–50% of the trip cost. Use Skyscanner’s "Everywhere" search from DXB or DOH to see which destination is cheapest for your school-holiday dates.',
+    partner: 'skyscanner',
+    href: skyscannerExploreLink('DXB'),
+    cta: 'Explore cheapest destinations from DXB',
+  },
+  {
+    stage: 'hotel',
+    title: 'Hotel: free cancellation, family room',
+    why: 'Book a refundable family room as soon as flights are locked, then check again a week before travel. Prices often drop, and you can re-book.',
+    partner: 'booking',
+    href: bookingLink({ destination: 'Bali', adults: 2, childAges: [6, 9] }),
+    cta: 'Search family hotels',
+  },
+  {
+    stage: 'transport',
+    title: 'Transport: pre-book the airport run',
+    why: 'Pre-booking the airport transfer is the easiest saving to miss. A fixed-price car booked ahead usually costs half the airport taxi rank price.',
+    partner: 'klook',
+    href: klookLink('airport transfer'),
+    cta: 'Find airport transfers',
+  },
+  {
+    stage: 'experiences',
+    title: 'Experiences: pre-book the 2–3 big ones',
+    why: 'Water parks, safaris and popular tours sell out in school holidays. Pre-book only the anchors and leave the rest of each day open.',
+    partner: 'getyourguide',
+    href: getYourGuideLink('family tours'),
+    cta: 'Browse family tours',
+  },
+  {
+    stage: 'insurance',
+    title: 'Insurance: cover children and evacuation',
+    why: 'Buy insurance once you have non-refundable bookings, and check that it includes children and medical evacuation.',
+    partner: 'safetywing',
+    href: safetyWingLink(),
+    cta: 'Get an insurance quote',
+  },
+  {
+    stage: 'money',
+    title: 'Money: spend at the real exchange rate',
+    why: 'A Wise card converts AED at the mid-market rate. Use it instead of airport exchange counters and dynamic currency conversion.',
+    partner: 'wise',
+    href: wiseLink(),
+    cta: 'Open a free Wise account',
+  },
+];
+
+/* ------------------------------------------------------------------- FAQ */
+const faqs: FAQ[] = [
+  {
+    q: 'What is the best family holiday from Dubai in 2026?',
+    a: 'Bali is our top all-round pick for 2026. It has water parks, beaches, temples and good-value family villas, with visa on arrival for Indian, EU, UK and US passports. Booked yourself, five nights costs about AED 4,970 per person, versus AED 7,100 or more through a Dubai travel agent.',
+  },
+  {
+    q: 'Which countries can Indians visit without a visa from Dubai?',
+    a: 'Indian passport holders living in the UAE can visit Thailand, Malaysia, Mauritius, Nepal and Bhutan without a prior visa. The Maldives, Indonesia and Seychelles offer entry on arrival. Rules and fees change often, so always confirm on the destination’s official immigration website before you book flights.',
+  },
+  {
+    q: 'How much can I save by booking a holiday myself instead of a travel agent?',
+    a: 'On a typical five-night family trip, booking flights, hotel, transfers and tours yourself saves about AED 2,000 per person. For a family of four that is roughly AED 8,000. The biggest savings come from hotels, airport transfers and tours, where agent package mark-ups are highest.',
+  },
+  {
+    q: 'Is it safe to book flights and hotels separately?',
+    a: 'Yes, if you book in the right order. Lock flights first, then a free-cancellation hotel, then transfers and tours, and finally insurance. Use well-known platforms with customer support. Separate bookings also give you more flexibility than an agent package, because each piece can be changed or refunded on its own.',
+  },
+  {
+    q: 'What is the right order to book a DIY family holiday?',
+    a: 'Book in this order: flights, hotel, airport transport, experiences, travel insurance, then money. Flights set your dates. A refundable hotel protects you if plans change. Insurance comes last so it covers everything you have already paid for. Sorting a Wise card avoids poor exchange rates abroad.',
+  },
+  {
+    q: 'Which destinations suit EU and US expats in Dubai for a premium family trip?',
+    a: 'Mauritius, the Maldives and the Seychelles are all within seven hours of Dubai, with family resorts and kids’ clubs. Japan is the top long-haul pick for older children. EU, UK and US passport holders enter all four visa-free or on arrival, so planning is mostly about flights and resorts.',
+  },
+];
+
+/* --------------------------------------------------------------- schema */
+const schema = [
+  article({
+    path: PATH,
+    headline: H1,
+    description: DESCRIPTION,
+    datePublished: DATE_PUBLISHED,
+    dateModified: DATE_MODIFIED,
+    about: ['Family holidays', 'Dubai', 'Qatar', 'Visa-free travel for Indians', 'DIY travel planning'],
+  }),
+  howTo({
+    path: PATH,
+    name: 'How to book a DIY family holiday from Dubai in 6 steps',
+    description: 'The booking order that saves Gulf families AED 2,000+ per person versus a travel agent package.',
+    totalTime: 'PT3H',
+    estimatedCostAED: USP.diyTotal,
+    steps: tripKit.map((s) => ({ name: s.title, text: s.why })),
+  }),
+  touristTrip({
+    path: PATH,
+    name: 'Family holidays from Dubai 2026, sorted by budget and visa type',
+    description:
+      'Curated family destinations within 3–10 hours of Dubai for Indian, EU, UK and US residents of the UAE and Qatar.',
+    touristType: ['Families with children', 'UAE residents', 'Qatar residents', 'Indian passport holders', 'EU/US expats'],
+    offerPriceAED: USP.diyTotal,
+    itinerary: [...indianBudget, ...euUsPremium.filter((d) => !d.href)].map((d) => ({
+      name: `${d.name}, ${d.country}`,
+      description: `${d.bestFor}. ${d.flight} from Dubai. ${d.visa}.`,
+      type: 'TouristDestination' as const,
+      url: d.href,
+    })),
+  }),
+];
+---
+
+<Base title={SITE.title} description={DESCRIPTION} niche="a" schema={schema} ogType="website" datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED}>
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">Updated <time datetime={DATE_MODIFIED}>October 2026</time> · For UAE &amp; Qatar residents</p>
+        <h1>{H1}</h1>
+        <p class="lede">{SITE.tagline}</p>
+        <div class="answer-box">
+          <span class="label">Quick answer</span>
+          <p>{QUICK_ANSWER}</p>
+        </div>
+        <div class="hero-actions">
+          <a class="pill pill--gold" href="#indian-rp-budget-trips">Indian RP · budget trips</a>
+          <a class="pill pill--gold" href="#eu-us-rp-premium-trips">EU/US RP · premium trips</a>
+          <a class="pill pill--teal" href="#visa-free-for-indians">Visa-free for Indians</a>
+        </div>
+      </div>
+      <aside class="hero-savings card" aria-label="DIY vs agent savings example">
+        <p class="eyebrow">Example: Bali, 5 nights, per person</p>
+        <SavingsTable
+          rows={savingsRows}
+          compact
+          caption="DIY vs travel agent"
+          basis="Per person, family of 4 sharing"
+          expectDiyTotal={USP.diyTotal}
+          expectAgentTotal={USP.agentTotal}
+        />
+        <a href="/bali-family-trip-from-dubai#trip-kit">See the line-by-line breakdown →</a>
+      </aside>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- ============ NICHE A1: INDIAN RP BUDGET ============ -->
+    <section class="section" id="indian-rp-budget-trips" aria-labelledby="a1-h" data-niche="a">
+      <header class="section-head">
+        <span class="badge badge--gold">Indian passport · UAE/Qatar residence</span>
+        <h2 id="a1-h">Best budget family holidays for Indian residents in Dubai</h2>
+        <p class="lede">
+          Short flights, easy visas and family trips for under AED 5,000 per person. Prices are our DIY estimate for 5
+          nights including flights.
+        </p>
+      </header>
+      <ul class="dest-grid">
+        {
+          indianBudget.map((d) => (
+            <li class="dest card">
+              <div class="dest-top">
+                <h3>{d.name}</h3>
+                <span class="muted small">{d.country}</span>
+              </div>
+              <p class="dest-price">
+                from <span class="price">{formatAED(d.diyFrom)}</span> <span class="small muted">pp</span>
+              </p>
+              <ul class="dest-facts small">
+                <li>✈ {d.flight} from DXB</li>
+                <li>🛂 {d.visa}</li>
+                <li>👨‍👩‍👧‍👦 {d.bestFor}</li>
+              </ul>
+              {d.href ? (
+                <a class="dest-link" href={d.href}>
+                  Read the full guide →
+                </a>
+              ) : (
+                <span class="badge">Guide coming soon</span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- ============ NICHE A2: EU/US RP PREMIUM ============ -->
+    <section class="section" id="eu-us-rp-premium-trips" aria-labelledby="a2-h" data-niche="a">
+      <header class="section-head">
+        <span class="badge badge--gold">EU · UK · US passport · Gulf residence</span>
+        <h2 id="a2-h">Premium family holidays for EU and US expats in Dubai</h2>
+        <p class="lede">
+          Resort-level comfort without resort-agency mark-ups. Booking the same resort directly is often 25–35% cheaper
+          than a Dubai agent package.
+        </p>
+      </header>
+      <ul class="dest-grid">
+        {
+          euUsPremium.map((d) => (
+            <li class="dest card">
+              <div class="dest-top">
+                <h3>{d.name}</h3>
+                <span class="muted small">{d.country}</span>
+              </div>
+              <p class="dest-price">
+                from <span class="price">{formatAED(d.diyFrom)}</span> <span class="small muted">pp</span>
+              </p>
+              <ul class="dest-facts small">
+                <li>✈ {d.flight} from DXB</li>
+                <li>🛂 {d.visa}</li>
+                <li>👨‍👩‍👧‍👦 {d.bestFor}</li>
+              </ul>
+              {d.href ? (
+                <a class="dest-link" href={d.href}>
+                  Read the full guide →
+                </a>
+              ) : (
+                <span class="badge">Guide coming soon</span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- ============ NICHE B: VISA-FREE FOR INDIANS ============ -->
+    <section class="section niche-b" id="visa-free-for-indians" aria-labelledby="b-h" data-niche="b">
+      <header class="section-head">
+        <span class="badge badge--teal">Indian passport holders</span>
+        <h2 id="b-h">Visa-free and visa-on-arrival family destinations for Indians</h2>
+        <div class="answer-box">
+          <span class="label">Quick answer</span>
+          <p>
+            Indian passport holders can visit Thailand, Malaysia, Mauritius, Nepal and Bhutan without a prior visa, and
+            get entry on arrival in the Maldives, Indonesia and Seychelles. All are under ten hours from Dubai. Check
+            official immigration sites before booking, because these rules change several times a year.
+          </p>
+        </div>
+      </header>
+
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">Visa-free and visa-on-arrival destinations for Indian passport holders flying from Dubai</caption>
+          <thead>
+            <tr>
+              <th scope="col">Destination</th>
+              <th scope="col">Entry type</th>
+              <th scope="col">Stay</th>
+              <th scope="col">Cost</th>
+              <th scope="col">From DXB</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              visaFreeForIndians.map((r) => (
+                <tr>
+                  <th scope="row">{r.country}</th>
+                  <td>
+                    <span class="badge badge--teal">{r.entry}</span>
+                  </td>
+                  <td>{r.stay}</td>
+                  <td class="price-cell">{r.cost}</td>
+                  <td class="mono">{r.flight}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="disclosure">
+        Last checked {DATE_MODIFIED}. Entry rules can change at short notice. Carry a passport valid for 6+ months, a
+        return ticket and hotel bookings for every traveller, including children.
+      </p>
+    </section>
+
+    <!-- ============ HOW-TO: BOOKING ORDER ============ -->
+    <TripKit
+      steps={tripKit}
+      heading="How to book any family holiday yourself (the 6-step order)"
+      intro="The same sequence works for every destination on this page. Follow it and you will rarely pay agent prices again."
+    />
+
+    <!-- ============ FAQ ============ -->
+    <FAQBlock faqs={faqs} heading="Family holidays from Dubai: FAQs" />
+
+    <section class="section final-cta card">
+      <h2>Start with the guide that's ready: Bali</h2>
+      <p>
+        A 5-day itinerary, transport prices for every leg, and checklists for Indian and EU/US residents. Book it yourself
+        for <span class="price">{formatAED(USP.diyTotal)}</span> per person instead of
+        <span class="price">{formatAED(USP.agentTotal)}+</span>.
+      </p>
+      <div class="cta-row">
+        <a class="pill pill--gold pill--solid" href="/bali-family-trip-from-dubai">Open the Bali guide →</a>
+        <AffiliateButton href={skyscannerExploreLink('DXB')} partner="skyscanner" label="Explore cheap flights from DXB" variant="secondary" />
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .hero {
+    padding-block: var(--space-2xl) var(--space-xl);
+    background:
+      radial-gradient(50rem 26rem at 0% 0%, var(--gold-soft), transparent 70%),
+      radial-gradient(40rem 22rem at 100% 100%, var(--teal-soft), transparent 70%),
+      var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-grid {
+    display: grid;
+    gap: var(--space-xl);
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (max-width: 56rem) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .hero h1 {
+    margin-block: var(--space-xs) var(--space-m);
+  }
+  .hero .lede {
+    margin-bottom: var(--space-l);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-l);
+  }
+  .hero-savings :global(.savings-summary) {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero-savings :global(.tot--save) {
+    grid-column: 1 / -1;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border: 2px solid;
+  }
+  .pill--gold {
+    color: var(--gold-ink);
+    border-color: var(--gold);
+    background: var(--gold-soft);
+  }
+  .pill--teal {
+    color: var(--teal-ink);
+    border-color: var(--teal);
+    background: var(--teal-soft);
+  }
+  .pill--solid {
+    background: var(--gold);
+    color: #1a1206;
+  }
+  .pill:hover {
+    box-shadow: var(--shadow-m);
+  }
+
+  .section-head {
+    margin-bottom: var(--space-l);
+  }
+  .section-head h2 {
+    margin-top: var(--space-s);
+  }
+
+  .dest-grid {
+    list-style: none;
+    padding: 0;
+    max-width: none;
+    display: grid;
+    gap: var(--space-m);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  }
+  .dest {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin: 0;
+    border-top: 4px solid var(--accent);
+  }
+  .dest + .dest {
+    margin-top: 0;
+  }
+  .dest-top h3 {
+    margin: 0;
+  }
+  .dest-price {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  .dest-price .price {
+    font-size: 1.25rem;
+    color: var(--accent-ink);
+  }
+  .dest-facts {
+    list-style: none;
+    padding: 0;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  .dest-facts li + li {
+    margin-top: 0.15rem;
+  }
+  .dest-link {
+    font-weight: 650;
+  }
+  .dest .badge {
+    align-self: flex-start;
+  }
+
+  .niche-b {
+    margin-top: var(--space-xl);
+    padding: var(--space-xl) var(--space-l);
+    background: var(--teal-soft);
+    border-radius: var(--radius-l);
+  }
+  .niche-b .answer-box {
+    background: var(--surface);
+  }
+  .niche-b .disclosure {
+    margin-top: var(--space-m);
+  }
+  .price-cell {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  .final-cta {
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl);
+    border-color: var(--accent);
+  }
+  .final-cta h2 {
+    margin-top: 0;
+  }
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+    margin-top: var(--space-l);
+  }
+</style>

@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Gulf Family Travels — DIY family holiday guides for Dubai & Qatar residents. Static Astro site on Cloudflare Pages.",
+  "description": "Gulf Family Travels — DIY family holiday guides for Dubai & Qatar residents. Static Astro site on Cloudflare Workers.",
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.21.0"
   },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "deploy": "npm run build && wrangler pages deploy",
+    "deploy": "npm run build && wrangler deploy",
     "astro": "astro"
   },
   "dependencies": {

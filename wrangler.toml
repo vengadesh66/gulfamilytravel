@@ -6,7 +6,7 @@
 # Qatar visitors to their hub. Every other path is served straight from
 # dist/ without invoking it, so it stays well inside the free tier.
 
-name = "gulf-family-travel"
+name = "gulfamilytravel"
 main = "worker/index.ts"
 compatibility_date = "2026-10-01"
 

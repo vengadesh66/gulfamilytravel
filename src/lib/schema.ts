@@ -1,11 +1,21 @@
 // JSON-LD builders. Every page combines Article + HowTo + TouristTrip
 // (+ BreadcrumbList) here; FAQPage is emitted inline by <FAQBlock />.
 
-import { SITE } from '@/data/site';
+import { SITE, DEPARTURE_CITIES, type Currency } from '@/data/site';
 
 type JsonLd = Record<string, unknown>;
 
 const abs = (path: string) => new URL(path, SITE.url).toString();
+
+type DepartureCity = (typeof DEPARTURE_CITIES)[number]['city'];
+
+/** Gulf departure cities as schema.org City nodes (all of them by default). */
+const departureCities = (only?: readonly DepartureCity[]) =>
+  DEPARTURE_CITIES.filter((c) => !only || only.includes(c.city)).map((c) => ({
+    '@type': 'City',
+    name: c.city,
+    containedInPlace: { '@type': 'Country', name: c.country },
+  }));
 
 export const organization = (): JsonLd => ({
   '@type': 'Organization',
@@ -14,6 +24,7 @@ export const organization = (): JsonLd => ({
   url: SITE.url,
   logo: { '@type': 'ImageObject', url: abs(SITE.logo) },
   slogan: SITE.tagline,
+  areaServed: departureCities(),
 });
 
 export const website = (): JsonLd => ({
@@ -34,6 +45,8 @@ export interface ArticleInput {
   dateModified: string; // ISO date — must differ from datePublished
   image?: string;
   about?: string[];
+  /** CSS selectors read aloud by voice assistants. Defaults to the quick-answer box. */
+  speakable?: string[];
 }
 
 /** Throws at build time if dateModified === datePublished (AEO freshness rule). */
@@ -65,6 +78,10 @@ export function article(a: ArticleInput): JsonLd {
     author: { '@type': 'Organization', name: SITE.author, url: SITE.url },
     publisher: { '@id': `${SITE.url}/#organization` },
     ...(a.about?.length ? { about: a.about.map((name) => ({ '@type': 'Thing', name })) } : {}),
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: a.speakable ?? ['h1', '.answer-box p'],
+    },
   };
 }
 
@@ -79,7 +96,7 @@ export interface HowToInput {
   name: string;
   description: string;
   totalTime?: string; // ISO 8601 duration, e.g. 'PT2H'
-  estimatedCostAED?: number;
+  estimatedCost?: { value: number; currency: Currency };
   supply?: string[];
   steps: HowToStepInput[];
 }
@@ -92,8 +109,8 @@ export function howTo(h: HowToInput): JsonLd {
     name: h.name,
     description: h.description,
     ...(h.totalTime ? { totalTime: h.totalTime } : {}),
-    ...(h.estimatedCostAED
-      ? { estimatedCost: { '@type': 'MonetaryAmount', currency: 'AED', value: h.estimatedCostAED } }
+    ...(h.estimatedCost
+      ? { estimatedCost: { '@type': 'MonetaryAmount', currency: h.estimatedCost.currency, value: h.estimatedCost.value } }
       : {}),
     ...(h.supply?.length ? { supply: h.supply.map((name) => ({ '@type': 'HowToSupply', name })) } : {}),
     step: h.steps.map((s, i) => ({
@@ -119,7 +136,9 @@ export interface TouristTripInput {
   description: string;
   touristType: string[];
   itinerary: TripStop[];
-  offerPriceAED?: number;
+  offerPrice?: { value: number; currency: Currency };
+  /** Cities this trip departs from; the offer is limited to them. */
+  departFrom?: readonly DepartureCity[];
   provider?: boolean;
 }
 
@@ -146,14 +165,16 @@ export function touristTrip(t: TouristTripInput): JsonLd {
         },
       })),
     },
-    ...(t.offerPriceAED
+    ...(t.offerPrice
       ? {
           offers: {
             '@type': 'Offer',
             name: 'Estimated DIY cost per person',
-            price: t.offerPriceAED,
-            priceCurrency: 'AED',
+            price: t.offerPrice.value,
+            priceCurrency: t.offerPrice.currency,
             availability: 'https://schema.org/InStock',
+            // Who the price applies to: families departing from these cities.
+            eligibleRegion: departureCities(t.departFrom),
             url,
           },
         }

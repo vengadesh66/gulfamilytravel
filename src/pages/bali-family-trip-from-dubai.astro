@@ -6,15 +6,8 @@ import TransportMap, { type TransportLeg } from '@/components/TransportMap.astro
 import FAQBlock, { type FAQ } from '@/components/FAQBlock.astro';
 import AffiliateButton from '@/components/AffiliateButton.astro';
 
-import { USP, formatAED } from '@/data/site';
-import {
-  skyscannerLink,
-  bookingLink,
-  klookLink,
-  getYourGuideLink,
-  safetyWingLink,
-  wiseLink,
-} from '@/data/affiliates';
+import { USP, FLIGHT_ORIGINS, formatAED } from '@/data/site';
+import { skyscannerLink, bookingLink, klookLink, getYourGuideLink } from '@/data/affiliates';
 import { article, howTo, touristTrip, breadcrumbs } from '@/lib/schema';
 
 /* ------------------------------------------------------------------ meta */
@@ -22,36 +15,38 @@ const PATH = '/bali-family-trip-from-dubai';
 const H1 = 'Is Bali Worth It for a Family Trip from Dubai in 2026?';
 const TITLE = 'Bali Family Trip from Dubai 2026: DIY Cost & Itinerary';
 const DESCRIPTION =
-  'Bali from Dubai for a family of four: 5-day itinerary, transport cheat sheet, visa checklists for Indian and EU/US residents, and how booking yourself costs AED 4,970 per person vs AED 7,100+ with an agent.';
+  'Bali from Dubai, Doha or Riyadh for a family of four: 5-day itinerary, transport cheat sheet, visa checklists for Indian and EU/US residents of the UAE, Qatar and Saudi Arabia, and how booking yourself costs AED 4,310 per person vs AED 6,700+ with an agent.';
 const DATE_PUBLISHED = '2026-10-10';
-const DATE_MODIFIED = '2026-10-17';
+const DATE_MODIFIED = '2026-10-18';
 
 const QUICK_ANSWER =
-  'Yes. Bali is one of the best-value family trips from Dubai in 2026. Booking flights, a Seminyak family hotel, private drivers and Waterbom yourself costs about AED 4,970 per person for five nights, versus AED 7,100 or more through a travel agent. Indians, Europeans and Americans all get a visa on arrival.';
+  'Yes, Bali is one of the best-value family trips from Dubai, Qatar or Saudi Arabia in 2026. Booking flights, a Seminyak family hotel, private drivers and Waterbom yourself costs about AED 4,310 per person for five nights, versus AED 6,700 or more through a travel agent. Indians, Europeans and Americans all get a visa on arrival.';
 
 /* --------------------------------------------------------------- savings */
 // Per person, family of 4 (2 adults + 2 kids) sharing, 5 nights, booked 6–8 weeks out.
 const savingsRows: SavingsRow[] = [
-  { item: 'Return flights DXB ⇄ DPS', diy: 2150, agent: 2600, how: 'Skyscanner, 1-stop, 6–8 weeks out' },
-  { item: 'Hotel, 5 nights Seminyak', diy: 800, agent: 1450, how: 'Booking.com family suite, AED 640/night ÷ 4' },
-  { item: 'Airport + daily transfers', diy: 260, agent: 520, how: 'Klook private car, split 4 ways' },
-  { item: 'Experiences & tours', diy: 780, agent: 1250, how: 'Waterbom, Ubud day trip, Uluwatu Kecak' },
-  { item: 'Visa on arrival + Bali levy', diy: 150, agent: 300, how: 'Official e-VoA + Love Bali levy' },
-  { item: 'Travel insurance', diy: 120, agent: 250, how: 'SafetyWing, 1 week' },
-  { item: 'eSIM + card fees', diy: 90, agent: 0, how: 'Klook eSIM + Wise card' },
-  { item: 'Meals & extras', diy: 620, agent: 730, how: 'Warungs + 2 nicer dinners' },
+  { item: 'Return flights DXB ⇄ DPS', diy: 2400, agent: 2900, how: 'Skyscanner, 1-stop, 6–8 weeks out' },
+  { item: 'Hotel, 5 nights Seminyak', diy: 1200, agent: 2100, how: 'Booking.com family suite, AED 960/night ÷ 4' },
+  { item: 'Airport + daily transfers', diy: 110, agent: 400, how: 'Klook private car + Grab, AED 440 per car ÷ 4' },
+  { item: 'Experiences & tours', diy: 600, agent: 1300, how: 'Waterbom, Ubud day trip, Uluwatu Kecak' },
 ];
+
+const flightOrigins = FLIGHT_ORIGINS.filter((c) => c !== 'DXB').map((code) => ({
+  code,
+  href: skyscannerLink({ from: code, to: 'DPS', adults: 2, childAges: [6, 9] }),
+}));
 
 /* -------------------------------------------------------------- trip kit */
 const tripKit: TripKitStep[] = [
   {
     stage: 'flights',
-    title: 'Lock flights first: Dubai → Denpasar (DPS)',
-    why: 'Flights are the biggest cost and set your dates. Compare Emirates direct (~9h) with 1-stop routes via Kuala Lumpur or Singapore, which are often AED 400–800 cheaper per person.',
+    title: 'Lock flights first: Dubai, Doha or Riyadh → Denpasar (DPS)',
+    why: 'Flights are the biggest cost and set your dates. From Dubai, compare Emirates direct (~9h) with 1-stop routes via Kuala Lumpur or Singapore, which are often AED 400–800 cheaper per person. From Riyadh or Jeddah, 1-stop routes via KL, Singapore or a Gulf hub are the norm.',
     partner: 'skyscanner',
     href: skyscannerLink({ from: 'DXB', to: 'DPS', adults: 2, childAges: [6, 9] }),
     cta: 'Compare DXB → DPS fares',
-    budget: 'AED 2,150 pp',
+    budget: 'AED 2,400 pp',
+    altOrigins: flightOrigins,
     tip: 'Use the "Whole month" view and set price alerts. Tuesday and Wednesday departures are usually cheapest.',
   },
   {
@@ -61,7 +56,7 @@ const tripKit: TripKitStep[] = [
     partner: 'booking',
     href: bookingLink({ destination: 'Seminyak, Bali', adults: 2, childAges: [6, 9] }),
     cta: 'See Seminyak family hotels',
-    budget: 'AED 800 pp',
+    budget: 'AED 1,200 pp',
     tip: 'A villa with a private pool often costs the same as two hotel rooms. Ask for a baby cot or rollaway bed in the booking notes.',
   },
   {
@@ -71,7 +66,7 @@ const tripKit: TripKitStep[] = [
     partner: 'klook',
     href: klookLink('Bali airport transfer'),
     cta: 'Book Bali airport transfer',
-    budget: 'AED 260 pp',
+    budget: 'AED 110 pp',
     tip: 'Child seats are rare in Bali. Request one at booking, or pack a travel booster seat.',
   },
   {
@@ -81,27 +76,8 @@ const tripKit: TripKitStep[] = [
     partner: 'getyourguide',
     href: getYourGuideLink('Bali family day trip Ubud'),
     cta: 'Browse Bali family tours',
-    budget: 'AED 780 pp',
+    budget: 'AED 600 pp',
     tip: 'Klook often has the best Waterbom price, and GetYourGuide has more guided Ubud options. Check both.',
-  },
-  {
-    stage: 'insurance',
-    title: 'Insure the trip once bookings are non-refundable',
-    why: 'Buy insurance once you have paid for flights. Check that it covers children, medical evacuation and trip interruption, because many UAE health plans only cover emergencies abroad.',
-    partner: 'safetywing',
-    href: safetyWingLink(),
-    cta: 'Get a SafetyWing quote',
-    budget: 'AED 120 pp',
-  },
-  {
-    stage: 'money',
-    title: 'Sort money: a Wise card beats exchange counters',
-    why: 'Load AED and spend in IDR at the mid-market rate. Withdraw rupiah from bank ATMs (BCA, Mandiri) and skip Dubai airport exchange counters and dynamic currency conversion.',
-    partner: 'wise',
-    href: wiseLink(),
-    cta: 'Open a free Wise account',
-    budget: 'AED 90 pp incl. eSIM',
-    tip: 'Always choose "charge in IDR" on card machines. Choosing AED triggers a bad conversion rate.',
   },
 ];
 
@@ -221,14 +197,14 @@ const transport: TransportLeg[] = [
 /* ------------------------------------------------------------ checklists */
 const indianChecklist = [
   'Indian passport valid at least 6 months from arrival, with 2 blank pages, for every family member.',
-  'UAE or Qatar residence visa valid for your return. Re-entry is refused if it expires while you are away.',
+  'UAE, Qatar or Saudi residence visa valid for your return. Re-entry is refused if it expires while you are away.',
+  'Saudi residents: an exit/re-entry visa (via Absher) that covers your return date.',
   'Indonesia e-VoA (Visa on Arrival) bought online at evisa.imigrasi.go.id, IDR 500,000 per person including children. Use only the official site.',
   'Bali tourism levy, IDR 150,000 per person, paid via the official Love Bali website or app.',
   'All Indonesia digital arrival card completed online within 3 days before landing.',
   'Printed or saved return ticket and hotel confirmation. Immigration can ask for both.',
   'If you connect in Kuala Lumpur or Singapore, stay airside on one ticket. Check transit rules if you self-transfer.',
-  'Travel insurance covering children and medical evacuation (SafetyWing or similar).',
-  'Wise card plus a backup bank card. Tell your UAE bank you are travelling.',
+  'A main and a backup bank card. Tell your bank you are travelling.',
 ];
 
 const euUsChecklist = [
@@ -236,17 +212,17 @@ const euUsChecklist = [
   'Indonesia e-VoA bought online before departure, IDR 500,000 per person. It is the same visa and fee as for Indian passports.',
   'Bali tourism levy, IDR 150,000 per person, via the official Love Bali website or app.',
   'All Indonesia digital arrival card completed online within 3 days before landing.',
-  'Check whether your UAE or Qatar employer health plan covers Indonesia. Many do not cover routine care abroad.',
-  'Residence visa valid for your return, plus your Emirates ID or Qatar ID for the e-gates when you get home.',
+  'Check whether your UAE, Qatar or Saudi employer health plan covers Indonesia. Many do not cover routine care abroad.',
+  'Residence visa valid for your return, plus your Emirates ID, Qatar ID or Iqama for the e-gates when you get home. Saudi residents also need an exit/re-entry visa.',
   'Don\'t rent scooters with kids. Most insurers won\'t pay out without a valid motorcycle licence and an International Driving Permit.',
-  'Wise card or a no-FX-fee card. Choose to pay in IDR, never in your home currency.',
+  'A no-FX-fee card. Choose to pay in IDR, never in your home currency.',
 ];
 
 /* ------------------------------------------------------------------- FAQ */
 const faqs: FAQ[] = [
   {
     q: 'Is Bali worth it for a family trip from Dubai in 2026?',
-    a: 'Yes, for most families. Bali offers calm beaches, Waterbom, rice terraces and temples at prices well below the Maldives or Europe. Booking flights, a Seminyak hotel and drivers yourself costs about AED 4,970 per person for five nights, versus AED 7,100 or more through a typical Dubai travel agent.',
+    a: 'Yes, for most families. Bali offers calm beaches, Waterbom, rice terraces and temples at prices well below the Maldives or Europe. Booking flights, a Seminyak hotel and drivers yourself costs about AED 4,310 per person for five nights, versus AED 6,700 or more through a typical Gulf travel agent.',
   },
   {
     q: 'Do Indian passport holders living in the UAE need a visa for Bali?',
@@ -269,28 +245,12 @@ const faqs: FAQ[] = [
     a: 'April to June and September are the sweet spot, with dry-season sunshine but without the July and August peak prices. Late June also catches the start of UAE school holidays before rates jump. December to March is wet season with short, heavy showers, but hotel prices can drop by a third.',
   },
   {
-    q: 'Do we need travel insurance for a Bali family holiday?',
-    a: 'Indonesia does not require it, but you should buy it. A private hospital visit in Bali can cost AED 1,000 or more, and medical evacuation far more. Many UAE health plans only cover emergencies abroad. SafetyWing costs roughly AED 120 per adult weekly and includes one child under ten per adult.',
-  },
-  {
     q: 'What is the Bali tourist levy and how do we pay it?',
     a: 'Every foreign visitor to Bali, including children, pays a one-time tourism levy of IDR 150,000, about AED 35. Pay it online through the official Love Bali website or app before departure, then show the QR code if asked on arrival. It is separate from, and in addition to, the visa on arrival fee.',
   },
 ];
 
 /* --------------------------------------------------------------- schema */
-const howToSteps = [
-  { name: 'Check passports', text: 'Make sure every passport, including children’s, is valid for at least 6 months from your arrival date in Bali.' },
-  { name: 'Book flights', text: 'Compare Dubai to Denpasar fares on Skyscanner and book 6–8 weeks ahead.' },
-  { name: 'Book a family hotel', text: 'Reserve a free-cancellation family room or villa in Seminyak on Booking.com.' },
-  { name: 'Book transfers', text: 'Pre-book the airport pickup and an Ubud day driver on Klook.' },
-  { name: 'Apply for the e-VoA', text: 'Buy the Indonesia e-VoA online at evisa.imigrasi.go.id for every traveller, IDR 500,000 each.' },
-  { name: 'Pay the Bali levy', text: 'Pay the IDR 150,000 per-person tourism levy on the official Love Bali website or app.' },
-  { name: 'Buy travel insurance', text: 'Buy a policy covering children and medical evacuation, such as SafetyWing.' },
-  { name: 'Set up money', text: 'Open a Wise card and plan to withdraw rupiah from bank ATMs on arrival.' },
-  { name: 'Complete the arrival card', text: 'Fill in the All Indonesia digital arrival card within 3 days before landing.' },
-  { name: 'Confirm residence validity', text: 'Check your UAE or Qatar residence visa is valid for your return date.' },
-];
 
 const schema = [
   article({
@@ -299,23 +259,24 @@ const schema = [
     description: DESCRIPTION,
     datePublished: DATE_PUBLISHED,
     dateModified: DATE_MODIFIED,
-    about: ['Bali', 'Family travel', 'Indonesia visa on arrival', 'Dubai'],
+    about: ['Bali', 'Family travel', 'Indonesia visa on arrival', 'Dubai', 'Doha', 'Riyadh', 'Jeddah'],
   }),
   howTo({
     path: PATH,
-    name: 'How to plan a DIY Bali family trip from Dubai (pre-departure checklist)',
-    description: 'The 10-step checklist UAE and Qatar residents follow to book Bali themselves and save AED 2,000+ per person.',
+    name: 'How to book a DIY Bali family trip from Dubai in 4 steps',
+    description: 'The booking order UAE, Qatar and Saudi residents follow to book Bali themselves and save AED 2,000+ per person.',
     totalTime: 'PT3H',
-    estimatedCostAED: USP.diyTotal,
-    supply: ['Passports (6+ months validity)', 'UAE/Qatar residence visa', 'Credit or Wise card', 'Smartphone with Love Bali app'],
-    steps: howToSteps,
+    estimatedCost: { value: USP.diyTotal, currency: 'AED' },
+    supply: ['Passports (6+ months validity)', 'UAE/Qatar/Saudi residence visa', 'Credit or debit card', 'Smartphone with Love Bali app'],
+    steps: tripKit.map((s) => ({ name: s.title, text: s.why })),
   }),
   touristTrip({
     path: PATH,
     name: '5-day Bali family itinerary from Dubai',
     description: 'Seminyak base with Waterbom, an Ubud day trip, Uluwatu Kecak dance and Tanah Lot, built for families with children.',
-    touristType: ['Families with children', 'Gulf residents', 'Indian passport holders', 'EU/US expats'],
-    offerPriceAED: USP.diyTotal,
+    touristType: ['Families with children', 'UAE residents', 'Qatar residents', 'Saudi Arabia residents', 'Indian passport holders', 'EU/US expats'],
+    offerPrice: { value: USP.diyTotal, currency: 'AED' },
+    departFrom: ['Dubai'],
     itinerary: [
       { name: 'Ngurah Rai International Airport', description: 'Arrival airport (DPS), 30–60 min from Seminyak.', type: 'Airport' },
       { name: 'Seminyak & Double Six Beach', description: 'Family base with sunset beach and restaurants.', type: 'TouristDestination' },
@@ -361,13 +322,13 @@ const saving = USP.agentTotal - USP.diyTotal;
         </div>
 
         <p class="meta small muted">
-          Updated <time datetime={DATE_MODIFIED}>17 October 2026</time> · First published
+          Updated <time datetime={DATE_MODIFIED}>18 October 2026</time> · First published
           <time datetime={DATE_PUBLISHED}>10 October 2026</time> · Prices per person, family of 4 sharing
         </p>
 
         <SavingsTable
           rows={savingsRows}
-          caption="Bali, 5 nights: DIY vs Dubai travel agent"
+          caption="Bali, 5 nights: DIY vs Gulf travel agent"
           basis="Per person · 2 adults + 2 kids sharing · 5 nights · booked 6–8 weeks out"
           expectDiyTotal={USP.diyTotal}
           expectAgentTotal={USP.agentTotal}
@@ -455,7 +416,7 @@ const saving = USP.agentTotal - USP.diyTotal;
       <TripKit
         steps={tripKit}
         heading="Book Bali yourself in this exact order"
-        intro="Flights → hotel → transport → experiences → insurance → money. Each step depends on the one before, and this order protects you if prices or dates change."
+        intro="Flights → hotel → transport → experiences. Each step depends on the one before, and this order protects you if prices or dates change."
       />
 
       <!-- ============ CHECKLISTS ============ -->
@@ -463,11 +424,11 @@ const saving = USP.agentTotal - USP.diyTotal;
         <h2 id="checklists-h">Pre-departure checklists for Gulf residents</h2>
         <p>
           Entry rules are the same for Indian, EU, UK and US passports: a paid visa on arrival. What differs is what you
-          need to check for your UAE or Qatar residence, insurance and transit.
+          need to check for your UAE, Qatar or Saudi residence and transit.
         </p>
         <div class="grid two">
           <div class="card checklist-card" data-niche="b">
-            <h3 id="indian-rp-checklist">🇮🇳 Indian passport + UAE/Qatar residence</h3>
+            <h3 id="indian-rp-checklist">🇮🇳 Indian passport + UAE/Qatar/Saudi residence</h3>
             <ul class="checklist">
               {indianChecklist.map((item) => <li>{item}</li>)}
             </ul>
@@ -508,8 +469,7 @@ const saving = USP.agentTotal - USP.diyTotal;
             variant="secondary"
           />
           <AffiliateButton href={klookLink('Bali airport transfer')} partner="klook" label="3 · Transfers" variant="secondary" />
-          <AffiliateButton href={safetyWingLink()} partner="safetywing" label="4 · Insurance" variant="secondary" />
-          <AffiliateButton href={wiseLink()} partner="wise" label="5 · Money" variant="secondary" />
+          <AffiliateButton href={getYourGuideLink('Bali family day trip Ubud')} partner="getyourguide" label="4 · Experiences" variant="secondary" />
         </div>
         <p class="disclosure">
           Affiliate links: we may earn a commission if you book, at no extra cost to you. We never handle your payment.

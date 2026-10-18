@@ -8,16 +8,14 @@ export type PartnerKey =
   | 'skyscanner'
   | 'booking'
   | 'klook'
-  | 'getyourguide'
-  | 'safetywing'
-  | 'wise';
+  | 'getyourguide';
 
 export interface Partner {
   key: PartnerKey;
   name: string;
   commission: string;
   /** Used for colour-coding chips in the UI. */
-  category: 'flights' | 'hotel' | 'transport' | 'experiences' | 'insurance' | 'money';
+  category: 'flights' | 'hotel' | 'transport' | 'experiences';
 }
 
 export const PARTNERS: Record<PartnerKey, Partner> = {
@@ -25,8 +23,6 @@ export const PARTNERS: Record<PartnerKey, Partner> = {
   booking: { key: 'booking', name: 'Booking.com', commission: '4%, 30-day cookie', category: 'hotel' },
   klook: { key: 'klook', name: 'Klook', commission: '3–5%', category: 'transport' },
   getyourguide: { key: 'getyourguide', name: 'GetYourGuide', commission: '8%', category: 'experiences' },
-  safetywing: { key: 'safetywing', name: 'SafetyWing', commission: '10%', category: 'insurance' },
-  wise: { key: 'wise', name: 'Wise', commission: '$25 per signup', category: 'money' },
 };
 
 const IDS = {
@@ -35,8 +31,6 @@ const IDS = {
   bookingAid: 'YOUR_BOOKING_AID',
   klookAid: 'YOUR_KLOOK_AID',
   gygPartnerId: 'YOUR_GYG_PARTNER_ID',
-  safetywingRef: 'YOUR_SAFETYWING_REF',
-  wiseInvite: 'https://wise.com/invite/YOUR_WISE_CODE',
 } as const;
 
 const isPlaceholder = (v: string) => v.includes('YOUR_');
@@ -112,18 +106,4 @@ export function klookLink(query: string): string {
 export function getYourGuideLink(query: string): string {
   const params = new URLSearchParams({ q: query, partner_id: IDS.gygPartnerId, currency: 'AED' });
   return `https://www.getyourguide.com/s/?${params}`;
-}
-
-/* ----------------------------------------------------------------------------
- * SafetyWing — travel medical insurance.
- * ------------------------------------------------------------------------- */
-export function safetyWingLink(): string {
-  return `https://safetywing.com/nomad-insurance?referenceID=${IDS.safetywingRef}&utm_source=${IDS.safetywingRef}&utm_medium=Ambassador`;
-}
-
-/* ----------------------------------------------------------------------------
- * Wise — multi-currency card, flat signup bonus.
- * ------------------------------------------------------------------------- */
-export function wiseLink(): string {
-  return IDS.wiseInvite;
 }

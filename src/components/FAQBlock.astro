@@ -36,7 +36,7 @@ for (const f of faqs) {
   }
 }
 
-const pageUrl = new URL(Astro.url.pathname, SITE.url).toString();
+const pageUrl = new URL(Astro.url.pathname.replace(/(\/index)?\.html$/, '') || '/', SITE.url).toString();
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',

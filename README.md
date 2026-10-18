@@ -1,9 +1,9 @@
 # Gulf Family Travels
 
-**Gulf DIY Travels: Plan Your Own Family Holiday from Dubai & Qatar**
+**Gulf DIY Travels: Plan Your Own Family Holiday from Dubai, Qatar & Saudi Arabia**
 _Skip the travel agent. Save AED 2,000+. We show you exactly how._
 
-A static Astro site for **gulfamilytravel.com**, hosted free on Cloudflare Pages. It has no backend, no database and no paid services. Affiliate links send readers to partners (Skyscanner, Booking.com, Klook, GetYourGuide, SafetyWing, Wise), and the partners take the payment.
+A static Astro site for **gulfamilytravel.com**, hosted free on Cloudflare Pages. It has no backend, no database and no paid services. Affiliate links send readers to partners (Skyscanner, Booking.com, Klook, GetYourGuide), and the partners take the payment.
 
 ---
 
@@ -28,7 +28,7 @@ src/
   components/
     AffiliateButton.astro   rel="sponsored nofollow", new tab, partner data attrs
     SavingsTable.astro      DIY vs agent table; fails the build if rows ≠ totals
-    TripKit.astro           flights → hotel → transport → experiences → insurance → money
+    TripKit.astro           flights → hotel → transport → experiences
     TransportMap.astro      airport → hotel → attractions → airport legs + Klook links
     FAQBlock.astro          accordion + inline FAQPage JSON-LD; enforces 40–58 words
   data/
@@ -64,7 +64,7 @@ These rules are checked at build time, so a page that breaks one won't deploy.
 | --- | --- |
 | FAQ answers are 40–58 words | `FAQBlock.astro` throws on build |
 | `dateModified` ≠ `datePublished` | `lib/schema.ts → assertFreshDates()` |
-| Savings rows add up to the headline totals (4,970 / 7,100) | `SavingsTable.astro` `expectDiyTotal` / `expectAgentTotal` |
+| Savings rows add up to the headline totals (4,310 / 6,700) | `SavingsTable.astro` `expectDiyTotal` / `expectAgentTotal` |
 
 Every page also has:
 
@@ -85,8 +85,6 @@ Every page also has:
    - Booking.com: `bookingAid`
    - Klook: `klookAid`
    - GetYourGuide: `gygPartnerId`
-   - SafetyWing: `safetywingRef`
-   - Wise: your invite URL
 
    Links work without the IDs, but they don't earn commission.
 2. **Prices and visa facts.** The AED figures are illustrative estimates, and the visa table reflects rules at the time of writing. Check each one against live prices and the official immigration sites before you publish.

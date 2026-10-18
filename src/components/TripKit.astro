@@ -1,14 +1,13 @@
 ---
 /**
  * The booking sequence. Always renders in the money-saving order:
- * flights → hotel → transport → experiences → insurance → money.
- * (Flights first because dates lock everything else; insurance after
- * you have non-refundable bookings to protect.)
+ * flights → hotel → transport → experiences.
+ * (Flights first because dates lock everything else.)
  */
 import AffiliateButton from './AffiliateButton.astro';
 import type { PartnerKey } from '@/data/affiliates';
 
-export type TripStage = 'flights' | 'hotel' | 'transport' | 'experiences' | 'insurance' | 'money';
+export type TripStage = 'flights' | 'hotel' | 'transport' | 'experiences';
 
 export interface TripKitStep {
   stage: TripStage;
@@ -21,6 +20,8 @@ export interface TripKitStep {
   /** Budget line in AED, e.g. "AED 2,150 pp". */
   budget?: string;
   tip?: string;
+  /** Same search from other departure airports, e.g. DOH and RUH. */
+  altOrigins?: { code: string; href: string }[];
 }
 
 interface Props {
@@ -30,14 +31,12 @@ interface Props {
   id?: string;
 }
 
-const ORDER: TripStage[] = ['flights', 'hotel', 'transport', 'experiences', 'insurance', 'money'];
+const ORDER: TripStage[] = ['flights', 'hotel', 'transport', 'experiences'];
 const ICON: Record<TripStage, string> = {
   flights: '✈',
   hotel: '⌂',
   transport: '⇄',
   experiences: '★',
-  insurance: '✚',
-  money: '¤',
 };
 
 const { steps, heading = 'Your trip kit — book in this order', intro, id = 'trip-kit' } = Astro.props;
@@ -69,6 +68,19 @@ const ordered = [...steps].sort((a, b) => ORDER.indexOf(a.stage) - ORDER.indexOf
               <AffiliateButton href={s.href} partner={s.partner} label={s.cta} />
               {s.budget && <span class="badge">{s.budget}</span>}
             </div>
+            {s.altOrigins && s.altOrigins.length > 0 && (
+              <p class="tk-alt small">
+                Flying from elsewhere?{' '}
+                {s.altOrigins.map((o, j) => (
+                  <>
+                    {j > 0 && ' · '}
+                    <a href={o.href} target="_blank" rel="sponsored nofollow noopener noreferrer" data-partner={s.partner}>
+                      From {o.code}
+                    </a>
+                  </>
+                ))}
+              </p>
+            )}
           </div>
         </li>
       ))
@@ -158,6 +170,10 @@ const ordered = [...steps].sort((a, b) => ORDER.indexOf(a.stage) - ORDER.indexOf
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-s);
+  }
+  .tk-alt {
+    margin-top: var(--space-xs);
+    color: var(--text-muted);
   }
   @media (max-width: 34rem) {
     .tk-step {

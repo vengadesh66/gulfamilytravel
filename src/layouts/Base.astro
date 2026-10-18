@@ -11,7 +11,7 @@ import '@fontsource/jetbrains-mono/500.css';
 import '@fontsource/jetbrains-mono/600.css';
 import '@/styles/global.css';
 
-import { SITE, USP, NAV, formatAED } from '@/data/site';
+import { SITE, USP, NAV, fromAED, formatMoney, type Currency } from '@/data/site';
 import { graph, toJsonLd, assertFreshDates } from '@/lib/schema';
 
 interface Props {
@@ -27,6 +27,8 @@ interface Props {
   datePublished?: string;
   dateModified?: string;
   noindex?: boolean;
+  /** Currency for the USP banner. */
+  currency?: Currency;
 }
 
 const {
@@ -39,16 +41,21 @@ const {
   datePublished,
   dateModified,
   noindex = false,
+  currency = 'AED',
 } = Astro.props;
+const money = (aed: number) => formatMoney(fromAED(aed, currency), currency);
 
 if (datePublished && dateModified) assertFreshDates(datePublished, dateModified, Astro.url.pathname);
 
-const canonical = new URL(Astro.url.pathname.replace(/\/$/, '') || '/', SITE.url).toString();
+// build.format 'file' reports paths as /qatar.html and /index.html; canonicals use the clean URL.
+const cleanPath = Astro.url.pathname.replace(/(\/index)?\.html$/, '').replace(/\/$/, '') || '/';
+const canonical = new URL(cleanPath, SITE.url).toString();
 const ogImageUrl = new URL(ogImage, SITE.url).toString();
 const fullTitle = title === SITE.title ? title : `${title} | ${SITE.name}`;
 const jsonLd = toJsonLd(graph(schema));
 const saving = USP.agentTotal - USP.diyTotal;
-const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const headline = USP.headline.replace('AED', currency);
+const currentPath = cleanPath;
 ---
 
 <!doctype html>
@@ -111,13 +118,13 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
     <aside class="usp-banner" aria-label="Why book it yourself">
       <div class="container usp-inner">
         <span class="usp-text">
-          <strong>{USP.headline}</strong>
+          <strong>{headline}</strong>
         </span>
         <span class="usp-figures">
-          DIY <span class="price">{formatAED(USP.diyTotal)}</span>
+          DIY <span class="price">{money(USP.diyTotal)}</span>
           <span aria-hidden="true">·</span>
-          Agent <span class="price strike">{formatAED(USP.agentTotal)}+</span>
-          <span class="badge badge--success">You keep {formatAED(saving)}</span>
+          Agent <span class="price strike">{money(USP.agentTotal)}+</span>
+          <span class="badge badge--success">You keep {money(saving)}</span>
         </span>
       </div>
     </aside>
@@ -128,7 +135,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
           <img src="/favicon.svg" alt="" width="32" height="32" />
           <span class="brand-text">
             <span class="brand-name">{SITE.name}</span>
-            <span class="brand-tag">Plan it yourself from Dubai &amp; Qatar</span>
+            <span class="brand-tag">Plan it yourself from Dubai, Qatar &amp; Saudi Arabia</span>
           </span>
         </a>
 
@@ -173,6 +180,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         <div>
           <p class="footer-heading">Guides</p>
           <ul class="footer-links">
+            <li><a href="/?hub=uae">Family holidays from the UAE</a></li>
+            <li><a href="/qatar">Family holidays from Qatar</a></li>
+            <li><a href="/saudi-arabia">Family holidays from Saudi Arabia</a></li>
             <li><a href="/bali-family-trip-from-dubai">Bali family trip from Dubai</a></li>
             <li><a href="/#indian-rp-budget-trips">Budget trips for Indian residents</a></li>
             <li><a href="/#eu-us-rp-premium-trips">Premium trips for EU/US residents</a></li>
@@ -182,7 +192,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
         <div>
           <p class="footer-heading">Affiliate disclosure</p>
           <p class="disclosure">
-            Some links are affiliate links (Skyscanner, Booking.com, Klook, GetYourGuide, SafetyWing, Wise). If you
+            Some links are affiliate links (Skyscanner, Booking.com, Klook, GetYourGuide). If you
             book through them we may earn a commission at no extra cost to you. We never take payments — every
             booking happens on the partner's site. Prices are estimates; always confirm visa rules on official
             government sites before you travel.

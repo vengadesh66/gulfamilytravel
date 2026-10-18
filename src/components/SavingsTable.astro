@@ -3,7 +3,7 @@
  * DIY vs travel-agent cost comparison. Totals are computed from rows and
  * checked against the stated totals so the headline numbers never drift.
  */
-import { formatAED } from '@/data/site';
+import { formatMoney, type Currency } from '@/data/site';
 
 export interface SavingsRow {
   item: string;
@@ -24,6 +24,8 @@ interface Props {
   expectDiyTotal?: number;
   expectAgentTotal?: number;
   compact?: boolean;
+  /** Rows are already in this currency. */
+  currency?: Currency;
 }
 
 const {
@@ -34,7 +36,9 @@ const {
   expectDiyTotal,
   expectAgentTotal,
   compact = false,
+  currency = 'AED',
 } = Astro.props;
+const formatAED = (n: number) => formatMoney(n, currency);
 
 const diyTotal = rows.reduce((sum, r) => sum + r.diy, 0);
 const agentTotal = rows.reduce((sum, r) => sum + r.agent, 0);
@@ -111,7 +115,7 @@ if (expectAgentTotal !== undefined && expectAgentTotal !== agentTotal) {
   }
   <figcaption class="small muted">
     <strong>{caption}.</strong>
-    {basis}. Estimates in AED based on typical prices; live prices change daily, so check the links below.
+    {basis}. Estimates in {currency} based on typical prices; live prices change daily, so check the links below.
   </figcaption>
 </figure>
 

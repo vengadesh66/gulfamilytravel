@@ -2,9 +2,9 @@
 import { defineConfig } from 'astro/config';
 import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 
-// Fully static build. Cloudflare Pages serves the /dist folder from its CDN —
-// no Worker, no Functions, no server. That keeps the site on the free tier
-// with unlimited static requests. (See README → "Why no Cloudflare adapter?")
+// Fully static build. Cloudflare serves the /dist folder as Worker static
+// assets. The only code that runs is worker/index.ts, and only for `/`
+// (geo-routing to the Qatar and Saudi hubs), so the site stays on the free tier.
 export default defineConfig({
   site: 'https://gulfamilytravel.com',
   output: 'static',

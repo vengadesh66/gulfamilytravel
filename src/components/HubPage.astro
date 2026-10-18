@@ -1,0 +1,567 @@
+---
+/**
+ * Country hub page. `/`, `/qatar` and `/saudi-arabia` all render this with a
+ * different Hub from src/data/hubs.ts.
+ */
+import Base from '@/layouts/Base.astro';
+import SavingsTable, { type SavingsRow } from '@/components/SavingsTable.astro';
+import TripKit, { type TripKitStep } from '@/components/TripKit.astro';
+import FAQBlock, { type FAQ } from '@/components/FAQBlock.astro';
+import AffiliateButton from '@/components/AffiliateButton.astro';
+
+import { SITE, USP, fromAED, formatMoney } from '@/data/site';
+import {
+  type Hub,
+  type Origin,
+  type FlightTimes,
+  HUB_LIST,
+  indianBudget,
+  euUsPremium,
+  visaFreeForIndians,
+} from '@/data/hubs';
+import { skyscannerLink, skyscannerExploreLink, bookingLink, klookLink, getYourGuideLink } from '@/data/affiliates';
+import { article, howTo, touristTrip } from '@/lib/schema';
+
+interface Props {
+  hub: Hub;
+}
+
+const { hub } = Astro.props;
+
+/* ------------------------------------------------------------------ meta */
+const DATE_PUBLISHED = '2026-10-10';
+const DATE_MODIFIED = '2026-10-18';
+
+/** Flight time from an origin, or null so the caller can link live fares instead. */
+const flightFrom = (flights: FlightTimes, origin: Origin) => flights[origin] ?? null;
+const faresHref = (origin: Origin, to: string) => skyscannerLink({ from: origin, to, adults: 2, childAges: [6, 9] });
+
+/* ---------------------------------------------------------------- money */
+// Prices are authored in AED and shown in the hub's currency.
+const cur = hub.currency;
+const money = (aed: number) => formatMoney(fromAED(aed, cur), cur);
+const visaCost = (cost: string) => cost.replace(/\{(\d+)\}/g, (_, n) => money(Number(n)));
+
+/* --------------------------------------------------------------- savings */
+// Per person, AED. Must sum to USP.diyTotal / USP.agentTotal (checked below).
+const savingsRowsAED: SavingsRow[] = [
+  { item: 'Flights', diy: 2400, agent: 2900 },
+  { item: 'Hotel (5 nights)', diy: 1200, agent: 2100 },
+  { item: 'Transport', diy: 110, agent: 400 },
+  { item: 'Experiences', diy: 600, agent: 1300 },
+];
+if (savingsRowsAED.reduce((n, r) => n + r.diy, 0) !== USP.diyTotal || savingsRowsAED.reduce((n, r) => n + r.agent, 0) !== USP.agentTotal) {
+  throw new Error('[HubPage] savings rows no longer add up to USP.diyTotal / USP.agentTotal.');
+}
+const savingsRows: SavingsRow[] = savingsRowsAED.map((r) => ({ ...r, diy: fromAED(r.diy, cur), agent: fromAED(r.agent, cur) }));
+// Totals in the hub's currency, from the converted rows, so every figure on the page agrees.
+const diyTotal = savingsRows.reduce((n, r) => n + r.diy, 0);
+const agentTotal = savingsRows.reduce((n, r) => n + r.agent, 0);
+const saving = agentTotal - diyTotal;
+const fmt = (n: number) => formatMoney(n, cur);
+const quickAnswer = hub.quickAnswer({ diy: fmt(diyTotal), agent: fmt(agentTotal), family: fmt(diyTotal * 4) });
+
+/* -------------------------------------------------------------- trip kit */
+const allOrigins = [hub.origin, ...hub.altOrigins];
+const tripKit: TripKitStep[] = [
+  {
+    stage: 'flights',
+    title: 'Flights: set your dates and destination',
+    why: `Flights are 40–50% of the trip cost. Use Skyscanner’s "Everywhere" search from ${allOrigins.join(', ').replace(/, ([A-Z]+)$/, ' or $1')} to see which destination is cheapest for your school-holiday dates.`,
+    partner: 'skyscanner',
+    href: skyscannerExploreLink(hub.origin),
+    cta: `Explore cheapest destinations from ${hub.origin}`,
+    altOrigins: hub.altOrigins.map((code) => ({ code, href: skyscannerExploreLink(code) })),
+  },
+  {
+    stage: 'hotel',
+    title: 'Hotel: free cancellation, family room',
+    why: 'Book a refundable family room as soon as flights are locked, then check again a week before travel. Prices often drop, and you can re-book.',
+    partner: 'booking',
+    href: bookingLink({ destination: 'Bali', adults: 2, childAges: [6, 9] }),
+    cta: 'Search family hotels',
+  },
+  {
+    stage: 'transport',
+    title: 'Transport: pre-book the airport run',
+    why: 'Pre-booking the airport transfer is the easiest saving to miss. A fixed-price car booked ahead usually costs half the airport taxi rank price.',
+    partner: 'klook',
+    href: klookLink('airport transfer'),
+    cta: 'Find airport transfers',
+  },
+  {
+    stage: 'experiences',
+    title: 'Experiences: pre-book the 2–3 big ones',
+    why: 'Water parks, safaris and popular tours sell out in school holidays. Pre-book only the anchors and leave the rest of each day open.',
+    partner: 'getyourguide',
+    href: getYourGuideLink('family tours'),
+    cta: 'Browse family tours',
+  },
+];
+
+/* ------------------------------------------------------------------- FAQ */
+const faqs: FAQ[] = [
+  {
+    q: `What is the best family holiday from ${hub.faqFrom} in 2026?`,
+    a: `Bali is our top all-round pick for families in ${hub.cityPhrase} in 2026. It has water parks, beaches, temples and good-value family villas, with visa on arrival for Indian, EU, UK and US passports. Booked yourself, five nights costs about ${fmt(diyTotal)} per person, versus ${fmt(agentTotal)} or more through an agent.`,
+  },
+  {
+    q: `Which countries can Indians visit without a visa from ${hub.cityPhrase}?`,
+    a: `Indian passport holders living in ${hub.residence} can visit Thailand, Malaysia, Mauritius, Nepal and Bhutan without a prior visa. The Maldives, Indonesia and Seychelles offer entry on arrival. Rules and fees change often, so always confirm on the destination’s official immigration website before you book flights.`,
+  },
+  {
+    q: 'How much can I save by booking a holiday myself instead of a travel agent?',
+    a: `On a typical five-night family trip from ${hub.cityPhrase}, booking flights, hotel, transfers and tours yourself saves about ${fmt(saving)} per person. For a family of four that is roughly ${fmt(saving * 4)}. The biggest savings come from hotels, airport transfers and tours, where agent mark-ups are highest.`,
+  },
+  {
+    q: 'Is it safe to book flights and hotels separately?',
+    a: 'Yes, if you book in the right order. Lock flights first, then a free-cancellation hotel, then transfers, and finally tours. Use well-known platforms with customer support. Separate bookings also give you more flexibility than an agent package, because each piece can be changed or refunded on its own.',
+  },
+  {
+    q: 'What is the right order to book a DIY family holiday?',
+    a: 'Book in this order: flights, hotel, airport transport, then experiences. Flights set your dates. A refundable hotel protects you if plans change. Transfers are cheapest booked ahead, and experiences come last so you only pre-book the two or three that sell out.',
+  },
+  {
+    q: `Which destinations suit EU and US expats in ${hub.cityPhrase} for a premium family trip?`,
+    a: `Mauritius, the Maldives and the Seychelles ${hub.premiumReach}, with family resorts and kids’ clubs. Japan is the top long-haul pick for older children. EU, UK and US passport holders enter all four visa-free or on arrival, so planning is mostly about flights and resorts.`,
+  },
+];
+
+/* --------------------------------------------------------------- schema */
+const schema = [
+  article({
+    path: hub.path,
+    headline: hub.h1,
+    description: hub.description,
+    datePublished: DATE_PUBLISHED,
+    dateModified: DATE_MODIFIED,
+    about: hub.about,
+  }),
+  howTo({
+    path: hub.path,
+    name: `How to book a DIY family holiday from ${hub.faqFrom} in 4 steps`,
+    description: `The booking order that saves families in ${hub.cityPhrase} ${fmt(saving)} per person versus a travel agent package.`,
+    totalTime: 'PT3H',
+    estimatedCost: { value: diyTotal, currency: cur },
+    steps: tripKit.map((s) => ({ name: s.title, text: s.why })),
+  }),
+  touristTrip({
+    path: hub.path,
+    name: hub.h1.replace(' — Picked by', ', sorted by').replace(' Budget & Visa Type', ' budget and visa type'),
+    description: `Curated family destinations departing from ${hub.cityPhrase} for Indian, EU, UK and US residents of ${hub.residence}.`,
+    touristType: hub.touristType,
+    offerPrice: { value: diyTotal, currency: cur },
+    departFrom: hub.departFrom,
+    itinerary: [...indianBudget, ...euUsPremium.filter((d) => !d.href)].map((d) => {
+      const t = flightFrom(d.flights, hub.origin);
+      return {
+        name: `${d.name}, ${d.country}`,
+        description: `${d.bestFor}.${t ? ` ${t} from ${hub.city}.` : ''} ${d.visa}.`,
+        type: 'TouristDestination' as const,
+        url: d.href,
+      };
+    }),
+  }),
+];
+---
+
+<Base title={hub.title ?? SITE.title} description={hub.description} currency={cur} ogImage={hub.ogImage} niche="a" schema={schema} ogType="website" datePublished={DATE_PUBLISHED} dateModified={DATE_MODIFIED}>
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="container hero-grid">
+      <div>
+        <p class="eyebrow">Updated <time datetime={DATE_MODIFIED}>October 2026</time> · {hub.eyebrowAudience}</p>
+        <h1>{hub.h1}</h1>
+        <p class="lede">{hub.heroLine ?? SITE.tagline}</p>
+        <div class="answer-box">
+          <span class="label">Quick answer</span>
+          <p>{quickAnswer}</p>
+        </div>
+        <div class="hero-actions">
+          <a class="pill pill--gold" href="#indian-rp-budget-trips">Indian RP · budget trips</a>
+          <a class="pill pill--gold" href="#eu-us-rp-premium-trips">EU/US RP · premium trips</a>
+          <a class="pill pill--teal" href="#visa-free-for-indians">Visa-free for Indians</a>
+        </div>
+        <nav class="hub-switch small" aria-label="Choose your departure country">
+          <span class="muted">Flying from:</span>
+          {
+            HUB_LIST.map((h) => (
+              <a href={h.switchHref} aria-current={h.key === hub.key ? 'page' : undefined}>
+                {h.label}
+              </a>
+            ))
+          }
+        </nav>
+        {hub.showKsaNote && (
+        <p class="ksa-note small">
+          <strong>Flying from Saudi Arabia?</strong> Thailand and Malaysia are about 6 and 7 hours from Riyadh. See the
+          <a href="/saudi-arabia">Saudi Arabia hub</a> for prices in SAR and live fares from RUH and JED. Visa rules
+          depend on your passport, not your GCC residence.
+        </p>
+        )}
+      </div>
+      <aside class="hero-savings card" aria-label="DIY vs agent savings example">
+        <p class="eyebrow">Example: Bali, 5 nights, per person</p>
+        <SavingsTable
+          rows={savingsRows}
+          compact
+          caption="DIY vs travel agent"
+          basis="Per person, family of 4 sharing"
+          currency={cur}
+          expectDiyTotal={diyTotal}
+          expectAgentTotal={agentTotal}
+        />
+        <a href="/bali-family-trip-from-dubai#trip-kit">See the line-by-line breakdown →</a>
+      </aside>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- ============ NICHE A1: INDIAN RP BUDGET ============ -->
+    <section class="section" id="indian-rp-budget-trips" aria-labelledby="a1-h" data-niche="a">
+      <header class="section-head">
+        <span class="badge badge--gold">Indian passport · {hub.residenceBadge} residence</span>
+        <h2 id="a1-h">Best budget family holidays for Indian residents in {hub.indianIn}</h2>
+        <p class="lede">
+          Short flights, easy visas and family trips for under {money(5000)} per person. Prices are our DIY estimate for 5
+          nights including flights.
+        </p>
+      </header>
+      <ul class="dest-grid">
+        {
+          indianBudget.map((d) => (
+            <li class="dest card">
+              <div class="dest-top">
+                <h3>{d.name}</h3>
+                <span class="muted small">{d.country}</span>
+              </div>
+              <p class="dest-price">
+                from <span class="price">{money(d.diyFrom)}</span> <span class="small muted">pp</span>
+              </p>
+              <ul class="dest-facts small">
+                {hub.cardOrigins.map((o) => {
+                  const t = flightFrom(d.flights, o);
+                  return t ? (
+                    <li>✈ {t} from {o}</li>
+                  ) : o === hub.origin ? (
+                    <li>
+                      ✈ <a href={faresHref(o, d.to)} target="_blank" rel="sponsored nofollow noopener noreferrer" data-partner="skyscanner">Live fares from {o}</a>
+                    </li>
+                  ) : null;
+                })}
+                <li>🛂 {d.visa}</li>
+                <li>👨‍👩‍👧‍👦 {d.bestFor}</li>
+              </ul>
+              {d.href ? (
+                <a class="dest-link" href={d.href}>
+                  Read the full guide →
+                </a>
+              ) : (
+                <span class="badge">Guide coming soon</span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- ============ NICHE A2: EU/US RP PREMIUM ============ -->
+    <section class="section" id="eu-us-rp-premium-trips" aria-labelledby="a2-h" data-niche="a">
+      <header class="section-head">
+        <span class="badge badge--gold">EU · UK · US passport · Gulf residence</span>
+        <h2 id="a2-h">Premium family holidays for EU and US expats in {hub.premiumIn}</h2>
+        <p class="lede">
+          Resort-level comfort without resort-agency mark-ups. Booking the same resort directly is often 25–35% cheaper
+          than a Gulf agent package.
+        </p>
+      </header>
+      <ul class="dest-grid">
+        {
+          euUsPremium.map((d) => (
+            <li class="dest card">
+              <div class="dest-top">
+                <h3>{d.name}</h3>
+                <span class="muted small">{d.country}</span>
+              </div>
+              <p class="dest-price">
+                from <span class="price">{money(d.diyFrom)}</span> <span class="small muted">pp</span>
+              </p>
+              <ul class="dest-facts small">
+                {hub.cardOrigins.map((o) => {
+                  const t = flightFrom(d.flights, o);
+                  return t ? (
+                    <li>✈ {t} from {o}</li>
+                  ) : o === hub.origin ? (
+                    <li>
+                      ✈ <a href={faresHref(o, d.to)} target="_blank" rel="sponsored nofollow noopener noreferrer" data-partner="skyscanner">Live fares from {o}</a>
+                    </li>
+                  ) : null;
+                })}
+                <li>🛂 {d.visa}</li>
+                <li>👨‍👩‍👧‍👦 {d.bestFor}</li>
+              </ul>
+              {d.href ? (
+                <a class="dest-link" href={d.href}>
+                  Read the full guide →
+                </a>
+              ) : (
+                <span class="badge">Guide coming soon</span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <!-- ============ NICHE B: VISA-FREE FOR INDIANS ============ -->
+    <section class="section niche-b" id="visa-free-for-indians" aria-labelledby="b-h" data-niche="b">
+      <header class="section-head">
+        <span class="badge badge--teal">Indian passport holders</span>
+        <h2 id="b-h">Visa-free and visa-on-arrival family destinations for Indians</h2>
+        <div class="answer-box">
+          <span class="label">Quick answer</span>
+          <p>
+            Indian passport holders can visit Thailand, Malaysia, Mauritius, Nepal and Bhutan without a prior visa, and
+            get entry on arrival in the Maldives, Indonesia and Seychelles. {hub.visaReach} Check
+            official immigration sites before booking, because these rules change several times a year.
+          </p>
+        </div>
+      </header>
+
+      <div class="table-wrap">
+        <table>
+          <caption class="visually-hidden">Visa-free and visa-on-arrival destinations for Indian passport holders flying from {hub.city}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Destination</th>
+              <th scope="col">Entry type</th>
+              <th scope="col">Stay</th>
+              <th scope="col">Cost</th>
+              <th scope="col">From {hub.origin}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              visaFreeForIndians.map((r) => (
+                <tr>
+                  <th scope="row">{r.country}</th>
+                  <td>
+                    <span class="badge badge--teal">{r.entry}</span>
+                  </td>
+                  <td>{r.stay}</td>
+                  <td class="price-cell">{visaCost(r.cost)}</td>
+                  <td class="mono">
+                    {flightFrom(r.flights, hub.origin) ?? (
+                      <a href={faresHref(hub.origin, r.to)} target="_blank" rel="sponsored nofollow noopener noreferrer" data-partner="skyscanner">Fares</a>
+                    )}
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="disclosure">
+        Last checked {DATE_MODIFIED}. Entry rules can change at short notice. Carry a passport valid for 6+ months, a
+        return ticket and hotel bookings for every traveller, including children.
+      </p>
+    </section>
+
+    <!-- ============ HOW-TO: BOOKING ORDER ============ -->
+    <TripKit
+      steps={tripKit}
+      heading="How to book any family holiday yourself (the 4-step order)"
+      intro="The same sequence works for every destination on this page. Follow it and you will rarely pay agent prices again."
+    />
+
+    <!-- ============ FAQ ============ -->
+    <FAQBlock faqs={faqs} heading={`Family holidays from ${hub.faqFrom}: FAQs`} />
+
+    <section class="section final-cta card">
+      <h2>Start with the guide that's ready: Bali</h2>
+      <p>
+        A 5-day itinerary, transport prices for every leg, and checklists for Indian and EU/US residents. Book it yourself
+        for <span class="price">{fmt(diyTotal)}</span> per person instead of
+        <span class="price">{fmt(agentTotal)}+</span>.
+      </p>
+      <div class="cta-row">
+        <a class="pill pill--gold pill--solid" href="/bali-family-trip-from-dubai">Open the Bali guide →</a>
+        {allOrigins.map((code) => (
+          <AffiliateButton href={skyscannerExploreLink(code)} partner="skyscanner" label={`Cheap flights from ${code}`} variant="secondary" />
+        ))}
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .hero {
+    padding-block: var(--space-2xl) var(--space-xl);
+    background:
+      radial-gradient(50rem 26rem at 0% 0%, var(--gold-soft), transparent 70%),
+      radial-gradient(40rem 22rem at 100% 100%, var(--teal-soft), transparent 70%),
+      var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-grid {
+    display: grid;
+    gap: var(--space-xl);
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  @media (max-width: 56rem) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .hero h1 {
+    margin-block: var(--space-xs) var(--space-m);
+  }
+  .hero .lede {
+    margin-bottom: var(--space-l);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-l);
+  }
+  .hub-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-s);
+    margin-top: var(--space-m);
+  }
+  .hub-switch a[aria-current='page'] {
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--text);
+  }
+  .ksa-note {
+    margin-top: var(--space-m);
+    padding: var(--space-s) var(--space-m);
+    border-left: 3px solid var(--gold);
+    background: var(--surface);
+    border-radius: var(--radius-s);
+    max-width: var(--measure);
+  }
+  .hero-savings :global(.savings-summary) {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero-savings :global(.tot--save) {
+    grid-column: 1 / -1;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border: 2px solid;
+  }
+  .pill--gold {
+    color: var(--gold-ink);
+    border-color: var(--gold);
+    background: var(--gold-soft);
+  }
+  .pill--teal {
+    color: var(--teal-ink);
+    border-color: var(--teal);
+    background: var(--teal-soft);
+  }
+  .pill--solid {
+    background: var(--gold);
+    color: #1a1206;
+  }
+  .pill:hover {
+    box-shadow: var(--shadow-m);
+  }
+
+  .section-head {
+    margin-bottom: var(--space-l);
+  }
+  .section-head h2 {
+    margin-top: var(--space-s);
+  }
+
+  .dest-grid {
+    list-style: none;
+    padding: 0;
+    max-width: none;
+    display: grid;
+    gap: var(--space-m);
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  }
+  .dest {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin: 0;
+    border-top: 4px solid var(--accent);
+  }
+  .dest + .dest {
+    margin-top: 0;
+  }
+  .dest-top h3 {
+    margin: 0;
+  }
+  .dest-price {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  .dest-price .price {
+    font-size: 1.25rem;
+    color: var(--accent-ink);
+  }
+  .dest-facts {
+    list-style: none;
+    padding: 0;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  .dest-facts li + li {
+    margin-top: 0.15rem;
+  }
+  .dest-link {
+    font-weight: 650;
+  }
+  .dest .badge {
+    align-self: flex-start;
+  }
+
+  .niche-b {
+    margin-top: var(--space-xl);
+    padding: var(--space-xl) var(--space-l);
+    background: var(--teal-soft);
+    border-radius: var(--radius-l);
+  }
+  .niche-b .answer-box {
+    background: var(--surface);
+  }
+  .niche-b .disclosure {
+    margin-top: var(--space-m);
+  }
+  .price-cell {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+  }
+
+  .final-cta {
+    margin-top: var(--space-2xl);
+    padding: var(--space-xl);
+    border-color: var(--accent);
+  }
+  .final-cta h2 {
+    margin-top: 0;
+  }
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-s);
+    margin-top: var(--space-l);
+  }
+</style>

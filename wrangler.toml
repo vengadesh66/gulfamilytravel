@@ -1,11 +1,17 @@
-# Cloudflare Workers config (static assets only — no Worker script).
+# Cloudflare Workers config: static assets plus a tiny geo-routing Worker.
 # Used by Workers Builds (`npx wrangler deploy`) when the project is
 # connected to GitHub, and by `npm run deploy` locally.
-# Static assets only, so it stays on the free tier.
+#
+# The Worker (worker/index.ts) only runs for `/`, where it sends Saudi and
+# Qatar visitors to their hub. Every other path is served straight from
+# dist/ without invoking it, so it stays well inside the free tier.
 
 name = "gulf-family-travel"
+main = "worker/index.ts"
 compatibility_date = "2026-10-01"
 
 [assets]
 directory = "./dist"
+binding = "ASSETS"
 not_found_handling = "404-page"
+run_worker_first = ["/"]

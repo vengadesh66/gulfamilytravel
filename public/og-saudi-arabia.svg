@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FBF8F3"/>
+      <stop offset="1" stop-color="#FBEFDF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#sky)"/>
+  <path d="M0 500c200-60 400-60 600 0s400 60 600 0v130H0z" fill="#0A7A6B"/>
+  <path d="M0 470c180-90 320-90 520-20s360 40 680-60v40c-320 100-480 110-680 50S180 400 0 500z" fill="#C8730A" opacity=".9"/>
+  <circle cx="1020" cy="150" r="70" fill="#C8730A" opacity=".25"/>
+  <text x="80" y="150" font-family="Syne, Arial, sans-serif" font-size="34" font-weight="700" fill="#9A5806" letter-spacing="3">GULF FAMILY TRAVELS</text>
+  <text x="80" y="245" font-family="Syne, Arial, sans-serif" font-size="62" font-weight="800" fill="#1B1A17">Plan your own family holiday</text>
+  <text x="80" y="320" font-family="Syne, Arial, sans-serif" font-size="62" font-weight="800" fill="#1B1A17">from Riyadh &amp; Jeddah</text>
+  <text x="80" y="400" font-family="Inter, Arial, sans-serif" font-size="34" fill="#5C574E">Save SAR 2,000+ vs a travel agent · DIY SAR 4,400 vs SAR 6,840+</text>
+</svg>
